@@ -1,10 +1,7 @@
-import { Box, Typography } from "@mui/material";
-import Image from "next/image";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return (
-    <Box>
-      <Typography>Hello World</Typography>
-    </Box>
-  );
-}
+const Home = () => {
+  redirect("/login");
+};
+
+export default Home;
