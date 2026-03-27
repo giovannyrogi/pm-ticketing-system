@@ -17,10 +17,9 @@ const Footer = () => {
       }}
     >
       <Typography
-        variant="body2"
-        color="text.secondary"
+        color="text.disabled"
         align="center"
-        sx={{ letterSpacing: 0.8, fontSize: "12px" }}
+        sx={{ letterSpacing: 0.8, fontSize: "12px", fontWeight: 500, fontFamily: "Poppins" }}
       >
         Copyright © 2025 - Perumda Pasar Manado
       </Typography>

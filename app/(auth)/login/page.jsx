@@ -19,12 +19,11 @@ import Image from "next/image";
 import Notification from "@/app/components/notification/Notification";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
 import Footer from "@/app/components/footer/page";
-import { useThemeMode } from "@/app/components/themeprovider/ThemeContext";
+import Link from "next/link";
 
-export default function LoginPage() {
+const LoginPage = () => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const router = useRouter();
-  const { themeMode, setThemeMode } = useThemeMode();
   const theme = useTheme();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -72,12 +71,6 @@ export default function LoginPage() {
         flexDirection: "column",
         transition: "all 0.3s",
         padding: isMobile ? 3 : 0,
-        // Tambahkan background image sesuai themeMode
-        // backgroundImage: `url(${
-        //   themeMode === "dark"
-        //     ? "/login-bg-darkmode.png"
-        //     : "/login-bg-lightmode.png"
-        // })`,
         // backgroundSize: "cover",
         // backgroundPosition: "center",
         // backgroundRepeat: "no-repeat",
@@ -102,72 +95,21 @@ export default function LoginPage() {
         }}
       >
         <Box
-          display="flex"
-          justifyContent="flex-end"
-          alignItems="center"
-          mb={1}
-        >
-          <IconButton
-            onClick={() => {
-              setThemeMode(themeMode === "dark" ? "light" : "dark");
-              localStorage.setItem(
-                "currentTheme",
-                JSON.stringify({
-                  currentThemeMode: themeMode === "dark" ? "light" : "dark",
-                }),
-              );
-            }}
-            color="primary"
-            aria-label="toggle theme"
-          >
-            {themeMode === "dark" ? (
-              <Icon
-                icon="line-md:sunny-filled-loop-to-moon-filled-loop-transition"
-                fontSize="25px"
-              />
-            ) : (
-              <Icon
-                icon="line-md:moon-filled-alt-to-sunny-filled-loop-transition"
-                fontSize="25px"
-              />
-            )}
-          </IconButton>
-        </Box>
-        <Box
           sx={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             flexDirection: "column",
-            mb: 2,
+            mb: 4,
           }}
         >
-          {/* <Image
-            src="/logo-pdpasar.png"
-            alt="logo-pdpasar"
-            width={100}
-            height={100}
-          /> */}
           <Image
-            src={
-              themeMode === "dark"
-                ? "/logo-darkmode.png"
-                : "/logo-lightmode.png"
-            }
+            src={"/logo-pm-ticketing1.png"}
             alt="logo-pdpasar"
-            width={200}
-            height={80}
-            // style={{backgroundColor:'orange'}}
+            width={160}
+            height={100}
+            // style=1{backgroundColor:'orange'}}
           />
-          {/* <Typography
-            sx={{
-              fontSize: "20px",
-              fontWeight: "bold",
-              color: "primary.main",
-            }}
-          >
-            Parumda Pasar Manado
-          </Typography> */}
         </Box>
         <form
           onSubmit={(e) => {
@@ -225,12 +167,34 @@ export default function LoginPage() {
               ),
             }}
           />
+          <Typography
+            sx={{
+              fontSize: 13,
+              mt: 0.5,
+              mb: 4,
+              fontFamily: "Poppins",
+              fontWeight: 500,
+              color: "text.disabled",
+            }}
+          >
+            Belum punya akun?
+            <Link
+              href="/register"
+              style={{
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+                marginLeft: 5,
+              }}
+            >
+              Daftar
+            </Link>
+          </Typography>
           <Button
             type="submit"
             variant="contained"
             color="primary"
             fullWidth
-            sx={{ mt: 2, fontWeight: "bold", fontSize: 16 }}
+            sx={{ mt: 2, fontWeight: "bold", fontSize: 16, textTransform: "none" }}
             disabled={loading || redirecting}
             startIcon={
               loading && <CircularProgress size={22} color="inherit" />
@@ -253,4 +217,6 @@ export default function LoginPage() {
       />
     </Box>
   );
-}
+};
+
+export default LoginPage;

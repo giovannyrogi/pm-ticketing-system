@@ -6,7 +6,8 @@ import "moment/locale/id";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ExpiredSessionModal from "../expiredsessionmodal/page";
-import { ThemeModeProvider } from "../themeprovider/ThemeContext";
+import { ThemeProvider } from "@mui/material";
+import theme from "../theme/theme";
 moment.locale("id");
 
 const SESSION_CHECK_INTERVAL = 1000; // cek tiap 1 detik
@@ -71,11 +72,11 @@ export default function AppProviders({ children }) {
   }, [showModal, counter, router]);
 
   return (
-    <ThemeModeProvider>
+    <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="id">
         {children}
         <ExpiredSessionModal open={showModal} counter={counter} />
       </LocalizationProvider>
-    </ThemeModeProvider>
+    </ThemeProvider>
   );
 }
