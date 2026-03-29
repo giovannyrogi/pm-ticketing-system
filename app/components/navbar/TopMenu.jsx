@@ -22,8 +22,16 @@ import BusinessIcon from "@mui/icons-material/Business";
 import { Icon } from "@iconify/react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 
-const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
+const TopMenu = ({
+  user,
+  onBurgerClick,
+  onShowLoading,
+  onHideLoading,
+  showSidebar,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:1300px)");
   const [anchorEl, setAnchorEl] = useState(null);
@@ -79,108 +87,146 @@ const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
       }}
     >
       {/* Left: Burger Icon */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Button
-          onClick={onBurgerClick}
-          edge="start"
-          aria-label="open drawer"
+
+      {user ? (
+        <>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button
+              onClick={onBurgerClick}
+              edge="start"
+              aria-label="open drawer"
+              sx={{
+                m: 0,
+                p: 0,
+                color: theme.palette.primary.main,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                textTransform: "capitalize",
+              }}
+            >
+              <MenuIcon />
+              <Typography sx={{ fontFamily: "poppins", fontWeight: "bold" }}>
+                Menu
+              </Typography>
+            </Button>
+          </Box>
+
+          {/* Right: Theme Toggle + Avatar */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Tooltip title="Notifikasi">
+              <IconButton
+                // onClick={handleAvatarClick}
+                size="small"
+                sx={{
+                  color: theme.palette.primary.main,
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  "&:hover": {
+                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                  },
+                }}
+              >
+                <Icon
+                  icon="line-md:bell-filled-loop"
+                  color={theme.palette.primary.main}
+                  fontSize="25px"
+                />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Settings">
+              <IconButton
+                onClick={handleAvatarClick}
+                size="small"
+                sx={{
+                  color: theme.palette.primary.main,
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  "&:hover": {
+                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                  },
+                }}
+              >
+                <Icon
+                  icon="line-md:cog-loop"
+                  color={theme.palette.primary.main}
+                  fontSize="25px"
+                />
+              </IconButton>
+            </Tooltip>
+
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleMenuClose}
+              onClick={handleMenuClose}
+              PaperProps={{
+                elevation: 3,
+                sx: { mt: 1.5, minWidth: 180 },
+              }}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+            >
+              <MenuItem onClick={handleProfile}>
+                <ListItemIcon>
+                  <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                Profil
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleLogout}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                Logout
+              </MenuItem>
+            </Menu>
+          </Box>
+        </>
+      ) : (
+        <Box
           sx={{
-            m: 0,
-            p: 0,
-            color: theme.palette.primary.main,
             display: "flex",
+            justifyContent: "space-between",
             alignItems: "center",
             gap: 1,
-            textTransform: "capitalize",
+            width: "100%",
           }}
         >
-          <MenuIcon />
-          <Typography sx={{ fontFamily: "poppins", fontWeight: "bold" }}>
-            Menu
-          </Typography>
-        </Button>
-      </Box>
-
-      {/* Right: Theme Toggle + Avatar */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Tooltip title="Notifikasi">
-          <IconButton
-            // onClick={handleAvatarClick}
-            size="small"
-            sx={{
-              color: theme.palette.primary.main,
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              "&:hover": {
-                bgcolor: alpha(theme.palette.primary.main, 0.2),
-              },
-            }}
-          >
-            <Icon
-              icon="line-md:bell-filled-loop"
-              color={theme.palette.primary.main}
-              fontSize="25px"
+          <Box>
+            <Image
+              src={"/logo-pm-ticketing1.png"}
+              alt="logo-pdpasar"
+              width={70}
+              height={40}
+              // style=1{backgroundColor:'orange'}}
             />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Settings">
-          <IconButton
-            onClick={handleAvatarClick}
-            size="small"
-            sx={{
-              color: theme.palette.primary.main,
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              "&:hover": {
-                bgcolor: alpha(theme.palette.primary.main, 0.2),
-              },
-            }}
-          >
-            <Icon
-              icon="line-md:cog-loop"
-              color={theme.palette.primary.main}
-              fontSize="25px"
-            />
-          </IconButton>
-        </Tooltip>
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleMenuClose}
-          onClick={handleMenuClose}
-          PaperProps={{
-            elevation: 3,
-            sx: { mt: 1.5, minWidth: 180 },
-          }}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-        >
-          <MenuItem onClick={handleProfile}>
-            <ListItemIcon>
-              <PersonIcon fontSize="small" />
-            </ListItemIcon>
-            Profil
-          </MenuItem>
-          <Divider />
-          {/* <MenuItem onClick={HandleDatabase}>
-              <ListItemIcon>
-                <StorageIcon fontSize="small" />
-              </ListItemIcon>
-              Database
-            </MenuItem>
-            <Divider /> */}
-          <MenuItem onClick={handleLogout}>
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            Logout
-          </MenuItem>
-        </Menu>
-      </Box>
+          </Box>
+          <Box>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                textTransform: "capitalize",
+                fontWeight: "bold",
+                fontFamily: "poppins",
+              }}
+            >
+              <Link
+                href="/login"
+                style={{ textDecoration: "none", color: "#fff" }}
+                target="_blank"
+              >
+                Login
+              </Link>
+            </Button>
+          </Box>
+        </Box>
+      )}
     </Paper>
   );
 };

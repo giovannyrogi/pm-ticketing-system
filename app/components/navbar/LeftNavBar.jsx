@@ -213,30 +213,30 @@ const LeftNavbar = ({
             // bgcolor:
           }}
         >
-          <Image
+          {/* <Image
             src="/logo-pdpasar.png"
             alt="logo-pdpasar"
             width={45}
             height={45}
             priority
+          /> */}
+          <Avatar
+            src={"/logo-pdpasar.png"}
+            alt="logo-pdpasar"
+            sx={{
+              width: 40,
+              height: 38,
+              bgcolor: "primary.main",
+              border: "2px solid #eee",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            imgProps={{
+              referrerPolicy: "no-referrer",
+              style: { objectFit: "cover", width: 52, height: 58 },
+            }}
           />
-          {/* <Avatar
-                    src={"/logo-pdpasar.png"}
-                    alt="logo-pdpasar"
-                    sx={{
-                      width: 40,
-                      height: 38,
-                      bgcolor: "primary.main",
-                      border: "2px solid #eee",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    imgProps={{
-                      referrerPolicy: "no-referrer",
-                      style: { objectFit: "cover", width: 52, height: 58, },
-                    }}
-                  /> */}
           <Box sx={{ marginLeft: "-6px" }}>
             <Typography
               sx={{
@@ -255,7 +255,7 @@ const LeftNavbar = ({
                 textTransform: "capitalize",
               }}
             >
-              {user ? user.role_name : ""}
+              {user ? user.role : ""}
             </Typography>
           </Box>
         </Box>

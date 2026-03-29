@@ -59,6 +59,14 @@ const LoginPage = () => {
     }
   };
 
+  const handleRedirect = () => {
+    setRedirecting(true);
+
+    setTimeout(() => {
+      router.push("/register");
+    }, 1000);
+  };
+
   return (
     <Box
       sx={{
@@ -178,23 +186,29 @@ const LoginPage = () => {
             }}
           >
             Belum punya akun?
-            <Link
-              href="/register"
+            <span
+              onClick={handleRedirect}
               style={{
                 color: theme.palette.primary.main,
                 fontWeight: "bold",
+                cursor: "pointer",
                 marginLeft: 5,
               }}
             >
               Daftar
-            </Link>
+            </span>
           </Typography>
           <Button
             type="submit"
             variant="contained"
             color="primary"
             fullWidth
-            sx={{ mt: 2, fontWeight: "bold", fontSize: 16, textTransform: "none" }}
+            sx={{
+              mt: 2,
+              fontWeight: "bold",
+              fontSize: 16,
+              textTransform: "none",
+            }}
             disabled={loading || redirecting}
             startIcon={
               loading && <CircularProgress size={22} color="inherit" />
@@ -207,6 +221,8 @@ const LoginPage = () => {
 
       {/* Footer  */}
       <Footer />
+
+      <LoadingBackdrop open={loading} message="Loading..." />
 
       {/* Snackbar notification */}
       <Notification

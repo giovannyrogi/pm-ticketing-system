@@ -21,6 +21,7 @@ import Notification from "@/app/components/notification/Notification";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
 import Footer from "@/app/components/footer/page";
 import Link from "next/link";
+import SuccessRegistration from "./SuccessRegistration";
 
 const RegisterPage = () => {
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -41,27 +42,70 @@ const RegisterPage = () => {
     message: "",
     severity: "success",
   });
+  const [openSuccessRegistrationModal, setOpenSuccessRegistrationModal] =
+    useState(false);
+  const [dataUser, setDataUser] = useState(null);
 
   const handleRegister = async () => {
-    // setLoading(true);
-    // try {
-    //   const response = await axios.post("/api/login", { username, password });
-    //   setSnackbar({
-    //     open: true,
-    //     message: "Login berhasil!",
-    //     severity: "success",
-    //   });
-    //   setTimeout(() => {
-    //     router.push("/dashboard");
-    //   }, 800);
-    // } catch (err) {
-    //   setSnackbar({
-    //     open: true,
-    //     message: err.response?.data?.message || "Login gagal!",
-    //     severity: "error",
-    //   });
-    //   setLoading(false);
-    // }
+    setLoading(true);
+
+    if (konfirmasiPassword !== password) {
+      setSnackbar({
+        open: true,
+        message: "Password dan Konfirmasi Password tidak cocok",
+        severity: "error",
+      });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post("/api/register", {
+        fullName,
+        username,
+        password,
+        email,
+        phoneNumber,
+      });
+
+      console.log("response", response);
+
+      if (response?.data?.success) {
+        setSnackbar({
+          open: true,
+          message: "Pendaftaran akun berhasil!",
+          severity: "success",
+        });
+
+        setDataUser(response?.data?.data);
+        setTimeout(() => {
+          setOpenSuccessRegistrationModal(true);
+          setLoading(false);
+        }, 800);
+      } else {
+        setSnackbar({
+          open: true,
+          message: response?.message || "Registrasi gagal!",
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      console.log("err", err);
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || "Login gagal!",
+        severity: "error",
+      });
+      setLoading(false);
+    }
+  };
+
+  const handleRedirect = () => {
+    setRedirecting(true);
+
+    setTimeout(() => {
+      router.push("/login");
+    }, 1000);
   };
 
   return (
@@ -265,22 +309,25 @@ const RegisterPage = () => {
               <Typography
                 sx={{
                   fontSize: 13,
+                  mt: 0.5,
+                  mb: 4,
                   fontFamily: "Poppins",
                   fontWeight: 500,
                   color: "text.disabled",
                 }}
               >
                 Sudah punya akun?
-                <Link
-                  href="/login"
+                <span
+                  onClick={handleRedirect}
                   style={{
                     color: theme.palette.primary.main,
                     fontWeight: "bold",
+                    cursor: "pointer",
                     marginLeft: 5,
                   }}
                 >
                   Login
-                </Link>
+                </span>
               </Typography>
             </Grid>
             <Grid size={12} mt={4}>
@@ -308,6 +355,18 @@ const RegisterPage = () => {
 
       {/* Footer  */}
       <Footer />
+
+      {/* Loading backdrop */}
+      <LoadingBackdrop open={loading} message="Loading..." />
+
+      <SuccessRegistration
+        open={openSuccessRegistrationModal}
+        onClose={() => setOpenSuccessRegistrationModal(false)}
+        dataUser={dataUser}
+        loading={loading}
+        setLoadingTrue={() => setLoading(true)}
+        setLoadingFalse={() => setLoading(false)}
+      />
 
       {/* Snackbar notification */}
       <Notification

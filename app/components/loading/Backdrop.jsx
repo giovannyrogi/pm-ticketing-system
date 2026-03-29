@@ -10,7 +10,6 @@ export default function LoadingBackdrop({
   open = false,
   message = "Loading...",
   zIndex = 999999,
-  LogoType = "black",
   ...props
 }) {
   const theme = useTheme();
@@ -65,15 +64,15 @@ export default function LoadingBackdrop({
                 transition={{ duration: 0.35, ease: "easeOut" }}
                 style={{
                   position: "relative",
-                  width: 120,
-                  height: 120,
+                  width: 150,
+                  height: 150,
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
                 }}
               >
                 <CircularProgress
-                  size={120}
+                  size={150}
                   thickness={1.4}
                   sx={{
                     position: "absolute",
@@ -82,29 +81,17 @@ export default function LoadingBackdrop({
                   }}
                 />
 
-                {LogoType === "black" ? (
-                  <Image
-                    src="/logo-w-black.png"
-                    alt="Loading Logo"
-                    width={95}
-                    height={95}
-                    style={{
-                      zIndex: 2,
-                      filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.2))",
-                    }}
-                  />
-                ) : (
-                  <Image
-                    src="/logo-w-white.png"
-                    alt="Loading Logo"
-                    width={95}
-                    height={95}
-                    style={{
-                      zIndex: 2,
-                      filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.2))",
-                    }}
-                  />
-                )}
+                <Image
+                  src="/logo-pm-ticketing1.png"
+                  alt="Loading Logo"
+                  width={100}
+                  height={60}
+                  style={{
+                    zIndex: 2,
+                    filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.2))",
+                    marginTop: -10,
+                  }}
+                />
               </motion.div>
 
               {/* MESSAGE */}
