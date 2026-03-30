@@ -48,6 +48,7 @@ const RegisterPage = () => {
 
   const handleRegister = async () => {
     setLoading(true);
+    setRedirecting(true);
 
     if (konfirmasiPassword !== password) {
       setSnackbar({
@@ -56,6 +57,7 @@ const RegisterPage = () => {
         severity: "error",
       });
       setLoading(false);
+      setRedirecting(false);
       return;
     }
 
@@ -81,6 +83,7 @@ const RegisterPage = () => {
         setTimeout(() => {
           setOpenSuccessRegistrationModal(true);
           setLoading(false);
+          setRedirecting(false);
         }, 800);
       } else {
         setSnackbar({
@@ -88,6 +91,8 @@ const RegisterPage = () => {
           message: response?.message || "Registrasi gagal!",
           severity: "error",
         });
+        setLoading(false);
+        setRedirecting(false);
       }
     } catch (err) {
       console.log("err", err);
@@ -97,6 +102,7 @@ const RegisterPage = () => {
         severity: "error",
       });
       setLoading(false);
+      setRedirecting(false);
     }
   };
 
@@ -125,17 +131,10 @@ const RegisterPage = () => {
         // backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Spinner full screen saat redirect */}
-      <LoadingBackdrop
-        open={redirecting}
-        message="Redirecting..."
-        color="#fff"
-      />
-
       <Paper
         elevation={6}
         sx={{
-          p: isMobile ? 3 : 5,
+          p: 4,
           width: "100%",
           maxWidth: isMobile ? 400 : 600,
           borderRadius: 3,
@@ -310,7 +309,7 @@ const RegisterPage = () => {
                 sx={{
                   fontSize: 13,
                   mt: 0.5,
-                  mb: 4,
+                  mb: 3,
                   fontFamily: "Poppins",
                   fontWeight: 500,
                   color: "text.disabled",
@@ -330,11 +329,12 @@ const RegisterPage = () => {
                 </span>
               </Typography>
             </Grid>
-            <Grid size={12} mt={4}>
+            <Grid size={12}>
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
+                size="small"
                 fullWidth
                 sx={{
                   fontWeight: "bold",
@@ -357,13 +357,16 @@ const RegisterPage = () => {
       <Footer />
 
       {/* Loading backdrop */}
-      <LoadingBackdrop open={loading} message="Loading..." />
+      <LoadingBackdrop open={redirecting} message="Loading..." />
 
       <SuccessRegistration
         open={openSuccessRegistrationModal}
         onClose={() => setOpenSuccessRegistrationModal(false)}
         dataUser={dataUser}
         loading={loading}
+        redirecting={redirecting}
+        setRedirectingTrue={() => setRedirecting(true)}
+        setRedirectingFalse={() => setRedirecting(false)}
         setLoadingTrue={() => setLoading(true)}
         setLoadingFalse={() => setLoading(false)}
       />

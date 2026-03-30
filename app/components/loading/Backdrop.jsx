@@ -9,7 +9,7 @@ import Image from "next/image";
 export default function LoadingBackdrop({
   open = false,
   message = "Loading...",
-  zIndex = 999999,
+  zIndex = 999998,
   ...props
 }) {
   const theme = useTheme();

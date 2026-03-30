@@ -1,17 +1,15 @@
-export const getMenusByRole = (menus, roleId) => {
+export const getMenusByRole = (menus, role) => {
+  if (!role) return [];
+
   return menus
     .map((menu) => {
-      // cek role menu utama
-      const hasMenuAccess = menu?.roles?.includes(roleId);
+      const hasAccess = menu.roles?.includes(role);
 
-      // filter submenu
-      const filteredSubmenu = menu?.submenu
-        ? menu.submenu.filter((sub) => sub?.roles.includes(roleId))
+      const filteredSubmenu = menu.submenu
+        ? menu.submenu.filter((sub) => sub.roles.includes(role))
         : [];
 
-      // jika punya submenu
       if (menu.submenu) {
-        // tampilkan parent hanya jika ada submenu yg boleh
         if (filteredSubmenu.length === 0) return null;
 
         return {
@@ -20,8 +18,7 @@ export const getMenusByRole = (menus, roleId) => {
         };
       }
 
-      // menu tanpa submenu
-      if (!hasMenuAccess) return null;
+      if (!hasAccess) return null;
 
       return menu;
     })

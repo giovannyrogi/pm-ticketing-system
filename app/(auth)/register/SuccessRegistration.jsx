@@ -29,6 +29,8 @@ const SuccessRegistration = ({
   loading,
   setLoadingTrue,
   loadingFalse,
+  redirecting,
+  setRedirectingTrue
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const theme = useTheme();
@@ -112,12 +114,13 @@ const SuccessRegistration = ({
               }}
             >
               Pendaftaran akun Anda telah berhasil. Silahkan login menggunakan
-              username dan password yang sudah Anda buat.
+              username dan password yang telah Anda buat.
             </Typography>
           </Box>
           <Button
             onClick={() => {
               setLoadingTrue();
+              setRedirectingTrue();
               setTimeout(() => {
                 // redirect to login
                 window.location.href = "/login";

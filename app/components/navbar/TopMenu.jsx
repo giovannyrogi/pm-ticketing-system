@@ -25,13 +25,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-const TopMenu = ({
-  user,
-  onBurgerClick,
-  onShowLoading,
-  onHideLoading,
-  showSidebar,
-}) => {
+const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:1300px)");
   const [anchorEl, setAnchorEl] = useState(null);
@@ -62,14 +56,6 @@ const TopMenu = ({
     }, 1000);
   };
 
-  const HandleDatabase = () => {
-    onShowLoading?.();
-    setTimeout(() => {
-      router.push("/database");
-    }, 1000);
-    onHideLoading?.();
-  };
-
   return (
     <Paper
       sx={{
@@ -88,28 +74,31 @@ const TopMenu = ({
     >
       {/* Left: Burger Icon */}
 
-      {user ? (
+      {!!user ? (
         <>
+         {/* LEFT */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Button
-              onClick={onBurgerClick}
-              edge="start"
-              aria-label="open drawer"
-              sx={{
-                m: 0,
-                p: 0,
-                color: theme.palette.primary.main,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                textTransform: "capitalize",
-              }}
-            >
-              <MenuIcon />
-              <Typography sx={{ fontFamily: "poppins", fontWeight: "bold" }}>
-                Menu
-              </Typography>
-            </Button>
+            {isMobile && (
+              <Button
+                onClick={() => onBurgerClick?.()}
+                edge="start"
+                aria-label="open drawer"
+                sx={{
+                  m: 0,
+                  p: 0,
+                  color: theme.palette.primary.main,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  textTransform: "capitalize",
+                }}
+              >
+                <MenuIcon />
+                <Typography sx={{ fontFamily: "poppins", fontWeight: "bold" }}>
+                  Menu
+                </Typography>
+              </Button>
+            )}
           </Box>
 
           {/* Right: Theme Toggle + Avatar */}
@@ -221,7 +210,7 @@ const TopMenu = ({
                 style={{ textDecoration: "none", color: "#fff" }}
                 target="_blank"
               >
-                Login
+                Login / Register
               </Link>
             </Button>
           </Box>

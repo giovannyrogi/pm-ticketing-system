@@ -2,13 +2,11 @@ import { Box, Typography } from "@mui/material";
 import { redirect } from "next/navigation";
 
 const Home = () => {
-  return(
+  return (
     <Box>
-      <Typography>
-        Home page
-      </Typography>
+      <Typography>Home page (public)</Typography>
     </Box>
-  )
+  );
 };
 
 export default Home;

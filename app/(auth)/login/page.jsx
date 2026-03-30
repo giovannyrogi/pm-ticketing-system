@@ -12,6 +12,7 @@ import {
   useMediaQuery,
   CircularProgress,
   useTheme,
+  Divider,
 } from "@mui/material";
 import { Icon } from "@iconify/react";
 import axios from "axios";
@@ -38,30 +39,47 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     setLoading(true);
+    setRedirecting(true);
     try {
       const response = await axios.post("/api/login", { username, password });
-      setSnackbar({
-        open: true,
-        message: "Login berhasil!",
-        severity: "success",
-      });
+      console.log("response login", response);
 
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 800);
+      if (response?.data?.success) {
+        setSnackbar({
+          open: true,
+          message: "Login berhasil!",
+          severity: "success",
+        });
+
+        setTimeout(() => {
+          router.push("/");
+          setLoading(false);
+          setRedirecting(false);
+        }, 1000);
+      } else {
+        setSnackbar({
+          open: true,
+          message: response?.data?.message || "Login gagal!",
+          severity: "error",
+        });
+        setLoading(false);
+        setRedirecting(false);
+      }
     } catch (err) {
+      console.log("error login", err);
+
       setSnackbar({
         open: true,
         message: err.response?.data?.message || "Login gagal!",
         severity: "error",
       });
       setLoading(false);
+      setRedirecting(false);
     }
   };
 
   const handleRedirect = () => {
     setRedirecting(true);
-
     setTimeout(() => {
       router.push("/register");
     }, 1000);
@@ -84,17 +102,10 @@ const LoginPage = () => {
         // backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Spinner full screen saat redirect */}
-      <LoadingBackdrop
-        open={redirecting}
-        message="Redirecting..."
-        color="#fff"
-      />
-
       <Paper
         elevation={6}
         sx={{
-          p: isMobile ? 3 : 5,
+          p: isMobile ? 3 : 3,
           width: "100%",
           maxWidth: 400,
           borderRadius: 3,
@@ -179,24 +190,14 @@ const LoginPage = () => {
             sx={{
               fontSize: 13,
               mt: 0.5,
-              mb: 4,
+              mb: 3,
               fontFamily: "Poppins",
               fontWeight: 500,
+              cursor: "pointer",
               color: "text.disabled",
             }}
           >
-            Belum punya akun?
-            <span
-              onClick={handleRedirect}
-              style={{
-                color: theme.palette.primary.main,
-                fontWeight: "bold",
-                cursor: "pointer",
-                marginLeft: 5,
-              }}
-            >
-              Daftar
-            </span>
+            Lupa Password?
           </Typography>
           <Button
             type="submit"
@@ -216,13 +217,40 @@ const LoginPage = () => {
           >
             {loading ? "Logging in..." : "Login"}
           </Button>
+          <Divider
+            sx={{
+              mt: 3,
+              mb: 2,
+            }}
+          />
+          <Typography
+            sx={{
+              fontSize: 13,
+              mt: 1,
+              fontFamily: "Poppins",
+              fontWeight: 500,
+              color: "text.disabled",
+              textAlign: "center",
+            }}
+          >
+            Belum punya akun?
+            <span
+              onClick={handleRedirect}
+              style={{
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+                cursor: "pointer",
+                marginLeft: 5,
+              }}
+            >
+              Daftar
+            </span>
+          </Typography>
         </form>
       </Paper>
 
       {/* Footer  */}
       <Footer />
-
-      <LoadingBackdrop open={loading} message="Loading..." />
 
       {/* Snackbar notification */}
       <Notification
@@ -231,6 +259,8 @@ const LoginPage = () => {
         severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       />
+
+      <LoadingBackdrop open={redirecting} message="Loading..." />
     </Box>
   );
 };

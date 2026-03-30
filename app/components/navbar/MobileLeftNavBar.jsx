@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import {
+  Drawer,
   Paper,
   List,
   ListItem,
@@ -12,50 +13,32 @@ import {
   IconButton,
   Divider,
   Button,
-  useMediaQuery,
   Avatar,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import { Icon } from "@iconify/react";
-import settingsMenu from "../menu/SettingsMenu";
-import LoadingBackdrop from "../loading/Backdrop";
-import { redirect, usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import axios from "axios";
+import LoadingBackdrop from "../loading/Backdrop";
 
-const LeftNavBar = ({
+const MobileLeftNavBar = ({
   menus,
   activeMenu,
   onMenuClick,
   user,
-  onHideLoading,
+  drawerOpen,
+  onCloseDrawer,
   onShowLoading,
+  onHideLoading,
   setLoadingMessage,
-  isLoggedIn,
 }) => {
-  if (!isLoggedIn) return null;
   const theme = useTheme();
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const isMobile = useMediaQuery("(max-width:600px)");
   const router = useRouter();
   const pathname = usePathname();
-
-  const handleLogout = async () => {
-    setLoading(true);
-    try {
-      await axios.post("/api/logout");
-      setTimeout(() => {
-        // window.location.href = "/login"; // middleware akan handle redirect
-        redirect("/login");
-      }, 1000);
-    } catch (err) {
-      console.log("error logout", err);
-      setLoading(false);
-    }
-  };
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Cek apakah menu utama aktif (langsung atau salah satu submenunya)
   const isMenuActive = (menu) =>
@@ -74,13 +57,14 @@ const LeftNavBar = ({
       try {
         let path = menu.path;
 
-        // Jika menu punya submenu (tidak punya path langsung)
+        // Jika menu punya submenu (tidak punya path lanqgsung)
         if (!path && menu.submenu) {
           setOpenDropdown((prev) => (prev === menu.value ? null : menu.value));
 
           // Tutup drawer setelah sedikit delay
           setTimeout(() => {
             onHideLoading?.();
+            onCloseDrawer();
           }, 300);
           return;
         }
@@ -102,6 +86,7 @@ const LeftNavBar = ({
             clearInterval(checkRouteChange);
             // halaman sudah berpindah, baru hide loading
             onHideLoading?.();
+            onCloseDrawer();
             if (onMenuClick) onMenuClick(menu.value);
           }
         }, 100);
@@ -110,32 +95,46 @@ const LeftNavBar = ({
         onHideLoading?.();
       }
     },
-    [router, pathname, onMenuClick, onShowLoading, onHideLoading],
+    [
+      router,
+      pathname,
+      onMenuClick,
+      onShowLoading,
+      onHideLoading,
+      onCloseDrawer,
+    ],
   );
 
-  return (
+  const handleLogout = async () => {
+    setLoading(true);
+    try {
+      await axios.post("/api/logout");
+      setTimeout(() => {
+        // window.location.href = "/login"; // middleware akan handle redirect
+        redirect("/login");
+      }, 1000);
+    } catch (err) {
+      console.log("error logout", err);
+      setLoading(false);
+    }
+  };
+
+  // Sidebar content
+  const sidebarContent = (
     <Paper
-      elevation={6}
+      elevation={0}
       sx={{
         p: 2,
-        width: "100%",
-        bgcolor: "background.default",
-        height: "100%",
-        minHeight: "100vh",
+        width: 260,
+        // bgcolor: "background.default",
+        minHeight: "100%",
         display: "flex",
         flexDirection: "column",
-        borderRight: "1px solid #ddd",
-        borderRadius: 0,
+        zIndex: 99999,
       }}
     >
-      {/* Area Menu & Settings */}
       <Box
-        sx={{
-          flex: "1 1 auto",
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
-        }}
+        sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}
       >
         {/* Logo & Brand */}
         <Box
@@ -146,22 +145,39 @@ const LeftNavBar = ({
             gap: 1,
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "2px",
-            }}
-          >
-            <Image
-              src={"/logo-pm-ticketing1.png"}
-              alt="logo-pm-ticketing"
-              width={100}
-              height={60}
-              priority
-            />
-          </Box>
+          <Image
+            src={"/logo-pm-ticketing1.png"}
+            alt="logo-pm-ticketing"
+            width={100}
+            height={60}
+            priority
+          />
+          {/* <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: "bold",
+              }}
+            >
+              Parking
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: "bolder",
+                color: theme.palette.primary.main,
+              }}
+            >
+              Onstreet
+            </Typography> */}
+          {/* <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: "bold",
+                // color: theme.palette.primary.main,
+              }}
+            >
+              Pasar
+            </Typography> */}
 
           {/* Show app version */}
           <Box
@@ -181,7 +197,7 @@ const LeftNavBar = ({
           </Box>
         </Box>
 
-        {/* LOGO */}
+        {/* Profile */}
         <Box
           sx={{
             mt: 4,
@@ -192,11 +208,18 @@ const LeftNavBar = ({
             justifyContent: "flex-start",
             gap: 1.5,
             padding: 1,
-            border: "1px solid #eee",
+            border: "1px solid theme.palette.primary.main",
             borderRadius: "10px",
-            bgcolor: alpha(theme.palette.primary.main, 0.12),
+            bgcolor: alpha(theme.palette.primary.main, 0.1),
           }}
         >
+          {/* <Image
+            src="/logo-pdpasar.png"
+            alt="logo-pdpasar"
+            width={45}
+            height={45}
+            priority
+          /> */}
           <Avatar
             // src={"/logo-pdpasar.png"}
             // alt="logo-pdpasar"
@@ -220,7 +243,6 @@ const LeftNavBar = ({
                 fontSize: "13px",
                 fontWeight: "bold",
                 textTransform: "capitalize",
-                color: theme.palette.text.primary,
               }}
             >
               {user ? user.full_name : ""}
@@ -240,30 +262,158 @@ const LeftNavBar = ({
 
         {/* Main Menu */}
         <List>
-          {(menus || []).map((menu) =>
-            menu.submenu ? (
-              <React.Fragment key={menu.value}>
-                <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() =>
-                      setOpenDropdown(
-                        openDropdown === menu.value ? null : menu.value,
-                      )
-                    }
-                    selected={isMenuActive(menu)}
-                    sx={{
-                      ml: -1.2,
-                      color: isMenuActive(menu)
-                        ? theme.palette.primary.main
-                        : theme.palette.text.primary,
-                      "& .MuiListItemIcon-root": {
+          {(menus || [])
+            .filter((menu) => !menu.hidden)
+            .map((menu) =>
+              menu.submenu ? (
+                <React.Fragment key={menu.value}>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      onClick={() =>
+                        setOpenDropdown(
+                          openDropdown === menu.value ? null : menu.value,
+                        )
+                      }
+                      selected={isMenuActive(menu)}
+                      sx={{
+                        ml: -1.2,
                         color: isMenuActive(menu)
                           ? theme.palette.primary.main
                           : theme.palette.text.primary,
-                      },
-                      bgcolor: "transparent !important",
-                      "&.Mui-selected, &.Mui-selected:hover, &:hover": {
+                        "& .MuiListItemIcon-root": {
+                          color: isMenuActive(menu)
+                            ? theme.palette.primary.main
+                            : theme.palette.text.primary,
+                        },
                         bgcolor: "transparent !important",
+                        "&.Mui-selected, &.Mui-selected:hover, &:hover": {
+                          bgcolor: "transparent !important",
+                          color: theme.palette.primary.main,
+                          "& .MuiListItemIcon-root": {
+                            color: theme.palette.primary.main,
+                          },
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Typography
+                            sx={{
+                              fontSize: "13px",
+                              fontWeight: isMenuActive(menu)
+                                ? "bold"
+                                : "normal",
+                            }}
+                          >
+                            {menu.label}
+                          </Typography>
+                        }
+                      />
+                      {openDropdown === menu.value ? (
+                        <ExpandLess sx={{ fontSize: "18px" }} />
+                      ) : (
+                        <ExpandMore sx={{ fontSize: "18px" }} />
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                  <Collapse
+                    in={openDropdown === menu.value}
+                    timeout="auto"
+                    unmountOnExit
+                  >
+                    <List component="div" disablePadding>
+                      {menu.submenu.map((sub) => (
+                        <ListItem
+                          disablePadding
+                          key={sub.value}
+                          sx={{ pl: 2.2 }}
+                        >
+                          <ListItemButton
+                            sx={{
+                              ml: -1.2,
+                              color: isSubMenuActive(sub)
+                                ? theme.palette.primary.main
+                                : theme.palette.text.primary,
+                              borderLeft: isSubMenuActive(sub)
+                                ? `5px solid ${theme.palette.primary.main}`
+                                : "none",
+                              bgcolor: isSubMenuActive(sub)
+                                ? alpha(theme.palette.primary.main, 0.12)
+                                : "transparent !important",
+                              "& .MuiListItemIcon-root": {
+                                color: isSubMenuActive(sub)
+                                  ? theme.palette.primary.main
+                                  : theme.palette.text.primary,
+                              },
+                              "&.Mui-selected, &.Mui-selected:hover, &:hover": {
+                                bgcolor: alpha(
+                                  theme.palette.primary.main,
+                                  0.12,
+                                ),
+                                color: theme.palette.primary.main,
+                                "& .MuiListItemIcon-root": {
+                                  color: theme.palette.primary.main,
+                                },
+                              },
+                            }}
+                            selected={isSubMenuActive(sub)}
+                            onClick={() => {
+                              handleMenuClick(sub);
+                            }}
+                          >
+                            {sub.showIcon ? (
+                              <ListItemIcon sx={{ mr: -2.5, ml: -1 }}>
+                                {sub.icon}
+                              </ListItemIcon>
+                            ) : null}
+                            <ListItemText
+                              primary={
+                                <Typography
+                                  sx={{
+                                    fontSize: "13px",
+                                    fontWeight: isSubMenuActive(sub)
+                                      ? "bold"
+                                      : "normal",
+                                  }}
+                                >
+                                  {sub.label}
+                                </Typography>
+                              }
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Collapse>
+                </React.Fragment>
+              ) : (
+                // Menu tanpa submenu
+                <ListItem disablePadding key={menu.value}>
+                  <ListItemButton
+                    selected={pathname === menu.path}
+                    onClick={() => {
+                      handleMenuClick(menu);
+                    }}
+                    sx={{
+                      ml: -1.2,
+                      color:
+                        activeMenu === menu.value
+                          ? theme.palette.primary.main
+                          : theme.palette.text.primary,
+                      "& .MuiListItemIcon-root": {
+                        color:
+                          activeMenu === menu.value
+                            ? theme.palette.primary.main
+                            : theme.palette.text.primary,
+                      },
+                      borderLeft: isMenuActive(menu)
+                        ? `5px solid ${theme.palette.primary.main}`
+                        : "none",
+                      bgcolor: isMenuActive(menu)
+                        ? alpha(theme.palette.primary.main, 0.12)
+                        : "transparent !important",
+                      "&.Mui-selected, &.Mui-selected:hover, &:hover": {
                         color: theme.palette.primary.main,
                         "& .MuiListItemIcon-root": {
                           color: theme.palette.primary.main,
@@ -276,7 +426,7 @@ const LeftNavBar = ({
                       primary={
                         <Typography
                           sx={{
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: isMenuActive(menu) ? "bold" : "normal",
                           }}
                         >
@@ -284,138 +434,13 @@ const LeftNavBar = ({
                         </Typography>
                       }
                     />
-                    {openDropdown === menu.value ? (
-                      <ExpandLess
-                        sx={{
-                          fontSize: "18px",
-                        }}
-                      />
-                    ) : (
-                      <ExpandMore
-                        sx={{
-                          fontSize: "18px",
-                        }}
-                      />
-                    )}
                   </ListItemButton>
                 </ListItem>
-                <Collapse
-                  in={openDropdown === menu.value}
-                  timeout="auto"
-                  unmountOnExit
-                >
-                  <List component="div" disablePadding>
-                    {menu.submenu.map((sub) => (
-                      <ListItem disablePadding key={sub.value} sx={{ pl: 2.2 }}>
-                        <ListItemButton
-                          sx={{
-                            ml: -1.2,
-                            color: isSubMenuActive(sub)
-                              ? theme.palette.primary.main
-                              : theme.palette.text.primary,
-                            borderLeft: isSubMenuActive(sub)
-                              ? `5px solid ${theme.palette.primary.main}`
-                              : "none",
-                            bgcolor: isSubMenuActive(sub)
-                              ? alpha(theme.palette.primary.main, 0.12)
-                              : "transparent !important",
-                            "& .MuiListItemIcon-root": {
-                              color: isSubMenuActive(sub)
-                                ? theme.palette.primary.main
-                                : theme.palette.text.primary,
-                            },
-                            "&.Mui-selected, &.Mui-selected:hover, &:hover": {
-                              bgcolor: alpha(theme.palette.primary.main, 0.12),
-                              color: theme.palette.primary.main,
-                              "& .MuiListItemIcon-root": {
-                                color: theme.palette.primary.main,
-                              },
-                            },
-                          }}
-                          selected={isSubMenuActive(sub)}
-                          onClick={() => handleMenuClick(sub)}
-                        >
-                          {sub.showIcon ? (
-                            <ListItemIcon sx={{ mr: -2.5, ml: -1 }}>
-                              {sub.icon}
-                            </ListItemIcon>
-                          ) : null}
-                          <ListItemText
-                            primary={
-                              <Typography
-                                sx={{
-                                  fontSize: "13px",
-                                  fontWeight: isSubMenuActive(sub)
-                                    ? "bold"
-                                    : "normal",
-                                }}
-                              >
-                                {sub.label}
-                              </Typography>
-                            }
-                          />
-                        </ListItemButton>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Collapse>
-              </React.Fragment>
-            ) : (
-              // Menu tanpa submenu
-              <ListItem disablePadding key={menu.value}>
-                <ListItemButton
-                  selected={pathname === menu.path}
-                  onClick={() => handleMenuClick(menu)}
-                  sx={{
-                    ml: -1.2,
-                    color:
-                      activeMenu === menu.value
-                        ? theme.palette.primary.main
-                        : theme.palette.text.primary,
-                    "& .MuiListItemIcon-root": {
-                      color:
-                        activeMenu === menu.value
-                          ? theme.palette.primary.main
-                          : theme.palette.text.primary,
-                    },
-                    borderLeft: isMenuActive(menu)
-                      ? `5px solid ${theme.palette.primary.main}`
-                      : "none",
-                    bgcolor: isMenuActive(menu)
-                      ? alpha(theme.palette.primary.main, 0.12)
-                      : "transparent !important",
-                    "&.Mui-selected, &.Mui-selected:hover, &:hover": {
-                      color: theme.palette.primary.main,
-                      "& .MuiListItemIcon-root": {
-                        color: theme.palette.primary.main,
-                      },
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Typography
-                        sx={{
-                          fontSize: "14px",
-                          fontWeight: isMenuActive(menu) ? "bold" : "normal",
-                        }}
-                      >
-                        {menu.label}
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-            ),
-          )}
+              ),
+            )}
         </List>
 
-        {/* <Divider
-          sx={{
-            mt: 1,
-          }}
-        /> */}
+        {/* <Divider sx={{ mt: 1 }} /> */}
 
         {/* Settings Menu */}
         {/* <List sx={{ mt: 1 }}>
@@ -459,7 +484,7 @@ const LeftNavBar = ({
                             fontWeight: isMenuActive(menu) ? "bold" : "normal",
                           }}
                         >
-                          {menu.label}
+                          {menu.label}{" "}
                         </Typography>
                       }
                     />
@@ -467,8 +492,8 @@ const LeftNavBar = ({
                       <ExpandLess sx={{ fontSize: "18px" }} />
                     ) : (
                       <ExpandMore sx={{ fontSize: "18px" }} />
-                    )}
-                  </ListItemButton>
+                    )}{" "}
+                  </ListItemButton>{" "}
                 </ListItem>
 
                 <Collapse
@@ -612,10 +637,41 @@ const LeftNavBar = ({
           </ListItem>
         </List>
       </Box> */}
-      {/* Spinner full screen saat redirect */}
-      <LoadingBackdrop open={loading} message="Logging out..." />
     </Paper>
+  );
+
+  return (
+    <Box>
+      {/* <Button
+        onClick={() => setDrawerOpen(true)}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          color: theme.palette.primary.main,
+          fontWeight: "bold",
+          fontSize: 16,
+        }}
+      >
+        <Icon icon="line-md:close-to-menu-transition" fontSize={25} />
+        <Typography>Menu</Typography>
+      </Button> */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={onCloseDrawer}
+        PaperProps={{
+          sx: {
+            width: 260,
+            bgcolor: "background.default",
+          },
+        }}
+      >
+        {sidebarContent}
+      </Drawer>
+      <LoadingBackdrop open={loading} message="Logging out..." />
+    </Box>
   );
 };
 
-export default LeftNavBar;
+export default MobileLeftNavBar;

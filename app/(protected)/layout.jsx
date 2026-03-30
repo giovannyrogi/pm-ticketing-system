@@ -4,14 +4,12 @@ import { useUser } from "../utils/useUser";
 import { getMenusByRole } from "../components/menu/getMenuByRole";
 import MENU_CONFIG from "../components/menu/MenuConfig";
 import MainLayout from "../components/layout/MainLayout";
-import LoadingBackdrop from "../components/loading/Backdrop";
 
 export default function ProtectedLayout({ children }) {
   const { user } = useUser();
   const menus = getMenusByRole(MENU_CONFIG, user?.role);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [loadingBackdropOpen, setLoadingBackdropOpen] = useState(false);
 
   return (
     <MainLayout
@@ -21,11 +19,6 @@ export default function ProtectedLayout({ children }) {
       drawerOpen={drawerOpen}
       onBurgerClick={() => setDrawerOpen(true)}
       onCloseDrawer={() => setDrawerOpen(false)}
-      onShowLoading={() => setLoadingBackdropOpen(true)}
-      onHideLoading={() => setLoadingBackdropOpen(false)}
-      loadingBackdrop={
-        <LoadingBackdrop open={loadingBackdropOpen} message="Loading..." />
-      }
     >
       {children}
     </MainLayout>

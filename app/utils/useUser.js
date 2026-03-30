@@ -6,13 +6,13 @@ export const useUser = () => {
   const [user, setUser] = useState(null);
 
   const syncFromCookie = () => {
-    const loggedInUser = getCookie("loggedInUser");
-    if (!loggedInUser) return;
+    const dataUser = getCookie("dataUser");
+    if (!dataUser) return;
 
     try {
-      setUser(JSON.parse(loggedInUser));
+      setUser(JSON.parse(dataUser));
     } catch (err) {
-      console.error("Error parsing loggedInUser cookie:", err);
+      console.error("Error parsing dataUser cookie:", err);
     }
   };
 
