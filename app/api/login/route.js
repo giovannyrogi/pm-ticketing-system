@@ -44,10 +44,17 @@ export async function POST(req) {
 
     // Cek status aktif
     if (!user.is_active) {
-      return NextResponse.json(
-        { message: "User tidak aktif, silakan hubungi admin" },
-        { status: 403 },
-      );
+      if (user.role === "user") {
+        return NextResponse.json(
+          { message: "User tidak aktif, silakan hubungi admin" },
+          { status: 403 },
+        );
+      } else {
+        return NextResponse.json(
+          { message: "User tidak aktif, silakan hubungi superadmin" },
+          { status: 403 },
+        );
+      }
     }
 
     delete user.password;

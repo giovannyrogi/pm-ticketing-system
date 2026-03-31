@@ -27,7 +27,7 @@ const MENU_CONFIG = [
     label: "Data Master",
     value: "dataMaster",
     icon: <Icon icon="mdi:database-outline" fontSize="20px" />,
-    roles: ["superadmin", "admin"],
+    roles: ["superadmin"],
     submenu: [
       {
         label: "Users",
@@ -42,7 +42,7 @@ const MENU_CONFIG = [
         value: "locations",
         path: "/locations",
         icon: <Icon icon="mdi:map-marker-outline" />,
-        roles: ["superadmin", "admin"],
+        roles: ["superadmin"],
         showIcon: true,
       },
       {
@@ -50,7 +50,7 @@ const MENU_CONFIG = [
         value: "categories",
         path: "/categories",
         icon: <Icon icon="tabler:category" />,
-        roles: ["superadmin", "admin"],
+        roles: ["superadmin"],
         showIcon: true,
       },
     ],

@@ -1,7 +1,7 @@
 import { getCookie } from "./cookies";
 
 export const updateUserCookie = (updatedFields) => {
-  const current = getCookie("loggedInUser");
+  const current = getCookie("dataUser");
   if (!current) return null;
 
   let parsed;
@@ -16,7 +16,7 @@ export const updateUserCookie = (updatedFields) => {
     ...updatedFields,
   };
 
-  document.cookie = `loggedInUser=${encodeURIComponent(
+  document.cookie = `dataUser=${encodeURIComponent(
     JSON.stringify(mergedUser)
   )}; path=/; SameSite=Strict`;
 

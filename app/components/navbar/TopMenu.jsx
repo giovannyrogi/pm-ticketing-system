@@ -76,7 +76,7 @@ const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
 
       {!!user ? (
         <>
-         {/* LEFT */}
+          {/* LEFT */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {isMobile && (
               <Button
@@ -197,6 +197,12 @@ const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
           </Box>
           <Box>
             <Button
+              onClick={() => {
+                onShowLoading?.();
+                setTimeout(() => {
+                  router.push("/login");
+                }, 1000);
+              }}
               variant="contained"
               size="small"
               sx={{
@@ -205,13 +211,7 @@ const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
                 fontFamily: "poppins",
               }}
             >
-              <Link
-                href="/login"
-                style={{ textDecoration: "none", color: "#fff" }}
-                target="_blank"
-              >
-                Login / Register
-              </Link>
+              Login / Register
             </Button>
           </Box>
         </Box>
