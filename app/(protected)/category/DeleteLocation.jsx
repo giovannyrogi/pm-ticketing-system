@@ -12,13 +12,13 @@ import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import axios from "axios";
 
-const DeleteLocation = ({
+const DeleteCategory = ({
   open,
   onClose,
   loadingTrue,
   loadingFalse,
   loading,
-  getLocationsData,
+  getDataCategories,
   onNotify,
   selectedData,
 }) => {
@@ -36,7 +36,9 @@ const DeleteLocation = ({
     e.preventDefault();
     loadingTrue();
     try {
-      const response = await axios.delete(`/api/locations/delete-location/${locationId}`);
+      const response = await axios.delete(
+        `/api/category/delete-category/${locationId}`,
+      );
       // console.log("response delete", response);
 
       if (response?.data?.success) {
@@ -46,7 +48,7 @@ const DeleteLocation = ({
             message: response.data?.message || "Lokasi berhasil dihapus!",
             severity: "info",
           });
-        getLocationsData();
+        getDataCategories();
         setTimeout(() => {
           loadingFalse();
           onClose();
@@ -149,7 +151,7 @@ const DeleteLocation = ({
                 letterSpacing: 0.5,
               }}
             >
-              Hapus Lokasi
+              Hapus Kategori
             </Typography>
             <Typography
               sx={{
@@ -159,7 +161,7 @@ const DeleteLocation = ({
               }}
             >
               Tindakan ini tidak dapat di batalkan, Anda yakin ingin menghapus
-              lokasi{" "}
+              kategori{" "}
               <span
                 style={{
                   fontWeight: "bold",
@@ -169,8 +171,8 @@ const DeleteLocation = ({
                   fontSize: 14,
                 }}
               >
-                {selectedData && selectedData.location_name
-                  ? selectedData.location_name
+                {selectedData && selectedData.category_name
+                  ? selectedData.category_name
                   : ""}
               </span>{" "}
               ?
@@ -209,4 +211,4 @@ const DeleteLocation = ({
   );
 };
 
-export default DeleteLocation;
+export default DeleteCategory;

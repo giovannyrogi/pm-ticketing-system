@@ -15,10 +15,12 @@ import { Icon } from "@iconify/react";
 import axios from "axios";
 import Notification from "@/app/components/notification/Notification";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
-import AddTicket from "./AddTicket";
+import AddCategory from "./AddCategory";
+import EditCategory from "./EditCategory";
+import DeleteCategory from "./DeleteLocation";
 
-const MyTickets = () => {
-  const [tickets, setTickets] = useState([]);
+const Category = () => {
+  const [categories, setCategories] = useState([]);
   const theme = useTheme();
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,12 +35,12 @@ const MyTickets = () => {
     severity: "success",
   });
 
-  const getDataTickets = async () => {
+  const getDatacategories = async () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/category/get-category");
-      console.log("tickets", response);
-      setTickets(response.data.data);
+      console.log("categories", response);
+      setCategories(response.data.data);
       setTimeout(() => {
         setLoading(false);
       }, 1000);
@@ -51,10 +53,10 @@ const MyTickets = () => {
   };
 
   useEffect(() => {
-    getDataTickets();
+    getDatacategories();
   }, []);
 
-  const filteredData = tickets.filter((item) =>
+  const filteredData = categories.filter((item) =>
     item.category_name?.toLowerCase().includes(searchText.toLowerCase()),
   );
 
@@ -87,8 +89,8 @@ const MyTickets = () => {
     return (value, record) => record[key] === value;
   }
 
-  const categoryFilters = generateFilters(tickets, "category_name");
-  const cityFilters = generateFilters(tickets, "city");
+  const categoryFilters = generateFilters(categories, "category_name");
+  const cityFilters = generateFilters(categories, "city");
   const statusFilters = [
     { text: "Aktif", value: true },
     { text: "Tidak Aktif", value: false },
@@ -174,8 +176,8 @@ const MyTickets = () => {
             fontWeight: "bold",
           }}
         >
-          Add Tickets
-          <Icon icon="mdi:discussion-plus" fontSize="20px" />
+          Add Category
+          <Icon icon="mdi:category-plus" fontSize="20px" />
         </Button>
       </Box>
 
@@ -236,22 +238,22 @@ const MyTickets = () => {
           />
         </Paper>
       </ConfigProvider>
-      <AddTicket
+      <AddCategory
         open={openAddModal}
         onClose={() => setOpenAddModal(false)}
         loadingTrue={() => setLoading(true)}
         loadingFalse={() => setLoading(false)}
         loading={loading}
-        getDataTickets={getDataTickets}
+        getDatacategories={getDatacategories}
         onNotify={(notif) => setSnackbar(notif)}
       />
-      {/* <EditCategory
+      <EditCategory
         open={openEditModal}
         onClose={() => setOpenEditModal(false)}
         loadingTrue={() => setLoading(true)}
         loadingFalse={() => setLoading(false)}
         loading={loading}
-        getDataTickets={getDataTickets}
+        getDatacategories={getDatacategories}
         onNotify={(notif) => setSnackbar(notif)}
         selectedData={selectedData}
       />
@@ -261,10 +263,10 @@ const MyTickets = () => {
         loadingTrue={() => setLoading(true)}
         loadingFalse={() => setLoading(false)}
         loading={loading}
-        getDataTickets={getDataTickets}
+        getDatacategories={getDatacategories}
         onNotify={(notif) => setSnackbar(notif)}
         selectedData={selectedData}
-      /> */}
+      />
       <LoadingBackdrop message="Loading..." open={loading} />
       {/* Snackbar notification */}
       <Notification
@@ -277,4 +279,4 @@ const MyTickets = () => {
   );
 };
 
-export default MyTickets;
+export default Category;

@@ -46,9 +46,9 @@ const MENU_CONFIG = [
         showIcon: true,
       },
       {
-        label: "Categories",
-        value: "categories",
-        path: "/categories",
+        label: "Catregory",
+        value: "category",
+        path: "/category",
         icon: <Icon icon="tabler:category" />,
         roles: ["superadmin"],
         showIcon: true,
