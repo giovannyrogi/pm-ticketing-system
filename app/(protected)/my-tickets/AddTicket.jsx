@@ -9,6 +9,7 @@ import {
   MenuItem,
   Modal,
   Select,
+  TextareaAutosize,
   TextField,
   Typography,
   useMediaQuery,
@@ -26,6 +27,8 @@ const AddTicket = ({
   loading,
   getDataTickets,
   onNotify,
+  locations,
+  categories,
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
 
@@ -46,62 +49,76 @@ const AddTicket = ({
     },
   };
 
-  const [categoryName, setCategoryName] = useState("");
+  const [tickeCode, setTicketCode] = useState("");
+  const [locationId, setLocationId] = useState("");
+  const [ticketTitle, setTicketTitle] = useState("");
+  const [ticketDescription, setTicketDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [status, setStatus] = useState("");
+  const [selectedLocationsId, setSelectedLocationsId] = useState("");
+  const [selectedLocations, setSelectedLocations] = useState("");
+  const [selectedCategoriesId, setSelectedCategoriesId] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    loadingTrue();
+    // loadingTrue();
 
-    try {
-      const response = await axios.post("/api/category/add-category", {
-        category_name: categoryName,
-      });
+    // try {
+    //   const response = await axios.post("/api/category/add-category", {
+    //     category_name: categoryName,
+    //   });
 
-      if (response?.data?.success) {
-        // Notifikasi sukses
-        onNotify &&
-          onNotify({
-            open: true,
-            message: response.data.message || "Category berhasil ditambahkan!",
-            severity: "success",
-          });
-        getDataTickets();
-        setTimeout(() => {
-          onClose();
-          loadingFalse();
-          clearForm();
-        }, 1000);
-      } else {
-        console.log("error", response);
-        // Notifikasi error
-        onNotify &&
-          onNotify({
-            open: true,
-            message: response?.data?.message || "Gagal menambah Category.",
-            severity: "error",
-          });
-        setTimeout(() => {
-          loadingFalse();
-        }, 1000);
-      }
-    } catch (error) {
-      console.log("error", error);
-      onNotify &&
-        onNotify({
-          open: true,
-          message:
-            error.response.data.message ||
-            "Terjadi error saat menambah Category.",
-          severity: "error",
-        });
-      setTimeout(() => {
-        loadingFalse();
-      }, 1000);
-    }
+    //   if (response?.data?.success) {
+    //     // Notifikasi sukses
+    //     onNotify &&
+    //       onNotify({
+    //         open: true,
+    //         message: response.data.message || "Category berhasil ditambahkan!",
+    //         severity: "success",
+    //       });
+    //     getDataTickets();
+    //     setTimeout(() => {
+    //       onClose();
+    //       loadingFalse();
+    //       clearForm();
+    //     }, 1000);
+    //   } else {
+    //     console.log("error", response);
+    //     // Notifikasi error
+    //     onNotify &&
+    //       onNotify({
+    //         open: true,
+    //         message: response?.data?.message || "Gagal menambah Category.",
+    //         severity: "error",
+    //       });
+    //     setTimeout(() => {
+    //       loadingFalse();
+    //     }, 1000);
+    //   }
+    // } catch (error) {
+    //   console.log("error", error);
+    //   onNotify &&
+    //     onNotify({
+    //       open: true,
+    //       message:
+    //         error.response.data.message ||
+    //         "Terjadi error saat menambah Category.",
+    //       severity: "error",
+    //     });
+    //   setTimeout(() => {
+    //     loadingFalse();
+    //   }, 1000);
+    // }
   };
 
   const clearForm = () => {
-    setCategoryName("");
+    setTicketCode("");
+    setLocationId("");
+    setTicketTitle("");
+    setTicketDescription("");
+    setCategory("");
+    setStatus("");
   };
 
   return (
@@ -137,19 +154,91 @@ const AddTicket = ({
           </Typography>
         </Box>
         <form onSubmit={handleSubmit}>
-          <Grid container spacing={isMobile ? 3 : 2}>
+          <Grid container spacing={3}>
+            <Grid size={12}>
+              <Autocomplete
+                options={locations}
+                getOptionLabel={(option) => option.location_name || ""}
+                value={
+                  locations.find((item) => item.id === selectedLocationsId) ||
+                  null
+                }
+                onChange={(event, newValue) => {
+                  console.log("newValue", newValue);
+                  setSelectedLocationsId(newValue?.id || "");
+                  setSelectedLocations(newValue || "");
+                }}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Pilih Lokasi"
+                    variant="filled"
+                    required
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={12}>
+              <Autocomplete
+                options={categories}
+                getOptionLabel={(option) => option.category_name || ""}
+                value={
+                  categories.find((item) => item.id === selectedCategoriesId) ||
+                  null
+                }
+                onChange={(event, newValue) => {
+                  console.log("newValue", newValue);
+                  setSelectedCategoriesId(newValue?.id || "");
+                  setSelectedCategories(newValue || "");
+                }}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Pilih Kategori"
+                    variant="filled"
+                    required
+                  />
+                )}
+              />
+            </Grid>
             <Grid size={12}>
               <TextField
-                label="Nama Kategori"
+                label="Subjek Tiket"
                 variant="filled"
                 fullWidth
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
+                value={ticketTitle}
+                onChange={(e) => setTicketTitle(e.target.value)}
                 autoFocus
                 required
                 disabled={loading}
                 color="primary"
               />
+            </Grid>
+            <Grid size={12}>
+              <Grid size={12}>
+                <TextField
+                  label="Deskripsi Tiket"
+                  placeholder="Jelaskan detail keluhan Anda..."
+                  variant="filled"
+                  fullWidth
+                  multiline
+                  minRows={4}
+                  maxRows={8}
+                  value={ticketDescription}
+                  onChange={(e) => setTicketDescription(e.target.value)}
+                  required
+                  disabled={loading}
+                  color="primary"
+                  sx={{
+                    "& .MuiInputBase-inputMultiline": {
+                      paddingTop: "8px", // menghilangkan jarak antara label dan textarea
+                      paddingBottom: "8px",
+                    },
+                  }}
+                />
+              </Grid>
             </Grid>
             <Grid size={12}>
               <Button

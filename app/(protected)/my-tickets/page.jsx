@@ -19,6 +19,8 @@ import AddTicket from "./AddTicket";
 
 const MyTickets = () => {
   const [tickets, setTickets] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
   const theme = useTheme();
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,16 +36,44 @@ const MyTickets = () => {
   });
 
   const getDataTickets = async () => {
-    setLoading(true);
     try {
-      const response = await axios.get("/api/category/get-category");
+      const response = await axios.get("/api/my-tickets/get-my-tickets");
       console.log("tickets", response);
-      setTickets(response.data.data);
-      setTimeout(() => {
-        setLoading(false);
-      }, 1000);
+      setTickets(response?.data?.data);
     } catch (error) {
       console.log("error", error);
+    }
+  };
+
+  const getDataLocations = async () => {
+    try {
+      const response = await axios.get("/api/locations/get-locations");
+      console.log("locations", response);
+      setLocations(response?.data?.data);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const getDataCategories = async () => {
+    try {
+      const response = await axios.get("/api/category/get-category");
+      console.log("categories", response);
+      setCategories(response?.data?.data);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const getAllData = async () => {
+    setLoading(true);
+    try {
+      await getDataTickets();
+      await getDataLocations();
+      await getDataCategories();
+    } catch (error) {
+      console.log("error", error);
+    } finally {
       setTimeout(() => {
         setLoading(false);
       }, 1000);
@@ -51,11 +81,15 @@ const MyTickets = () => {
   };
 
   useEffect(() => {
-    getDataTickets();
+    getAllData();
   }, []);
 
-  const filteredData = tickets.filter((item) =>
-    item.category_name?.toLowerCase().includes(searchText.toLowerCase()),
+  const filteredData = tickets.filter(
+    (item) =>
+      item.ticket_code?.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.ticket_title?.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.category_name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.status?.toLowerCase().includes(searchText.toLowerCase()),
   );
 
   const onChange = (pagination, filters, sorter, extra) => {
@@ -87,25 +121,67 @@ const MyTickets = () => {
     return (value, record) => record[key] === value;
   }
 
+  const ticketTitleFilters = generateFilters(tickets, "ticket_title");
   const categoryFilters = generateFilters(tickets, "category_name");
-  const cityFilters = generateFilters(tickets, "city");
   const statusFilters = [
-    { text: "Aktif", value: true },
-    { text: "Tidak Aktif", value: false },
+    { text: "Pending", value: "pending" },
+    { text: "Proses", value: "proses" },
+    { text: "Selesai", value: "selesai" },
+    { text: "Ditolak", value: "ditolak" },
   ];
 
   const columns = [
     {
-      title: "Nama Kategori",
-      dataIndex: "category_name",
-      filters: categoryFilters,
-      onFilter: createOnFilter("category_name"),
+      title: "Kode Tiket",
+      dataIndex: "ticket_code",
+      render: (text, record) => (
+        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
+          {record.ticket_code}
+        </Typography>
+      ),
+      width: 150,
+    },
+    {
+      title: "Subjek Tiket",
+      dataIndex: "ticket_title",
+      filters: ticketTitleFilters,
+      onFilter: createOnFilter("ticket_title"),
       filterSearch: true,
-      sorter: (a, b) => a.category_name.localeCompare(b.category_name),
+      sorter: (a, b) => a.ticket_title.localeCompare(b.ticket_title),
       sortDirections: ["ascend", "descend"],
       render: (text, record) => (
         <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
-          {record.category_name}
+          {record.ticket_title}
+        </Typography>
+      ),
+      width: 200,
+    },
+    {
+      title: "Kategori",
+      dataIndex: "category",
+      filters: categoryFilters,
+      onFilter: createOnFilter("category"),
+      filterSearch: true,
+      sorter: (a, b) => a.category.localeCompare(b.category),
+      sortDirections: ["ascend", "descend"],
+      render: (text, record) => (
+        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
+          {record.category}
+        </Typography>
+      ),
+      width: 200,
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      filters: statusFilters,
+      onFilter: createOnFilter("status"),
+      filterSearch: true,
+      sorter: (a, b) => a.status.localeCompare(b.status),
+      sortDirections: ["ascend", "descend"],
+      render: (text, record) => (
+        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
+          {record.status}
         </Typography>
       ),
       width: 200,
@@ -172,9 +248,10 @@ const MyTickets = () => {
             justifyContent: "center",
             gap: 1,
             fontWeight: "bold",
+            fontFamily: "Poppins, sans-serif",
           }}
         >
-          Add Tickets
+          Buat
           <Icon icon="mdi:discussion-plus" fontSize="20px" />
         </Button>
       </Box>
@@ -190,7 +267,7 @@ const MyTickets = () => {
         }}
       >
         <Paper
-          elevation={6}
+          elevation={2}
           sx={{
             p:
               filteredData.length > 0
@@ -218,6 +295,7 @@ const MyTickets = () => {
               }}
             />
           </Space.Compact>
+
           <Table
             rowKey="id"
             key={"id"}
@@ -244,6 +322,8 @@ const MyTickets = () => {
         loading={loading}
         getDataTickets={getDataTickets}
         onNotify={(notif) => setSnackbar(notif)}
+        locations={locations}
+        categories={categories}
       />
       {/* <EditCategory
         open={openEditModal}
