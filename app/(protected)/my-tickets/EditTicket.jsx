@@ -23,7 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useUser } from "@/app/utils/useUser";
 import ImagePreviewModal from "@/app/components/image/ImagePreviewModal";
 
-const AddTicket = ({
+const EditTicket = ({
   open,
   onClose,
   loadingTrue,
@@ -33,6 +33,7 @@ const AddTicket = ({
   onNotify,
   locations,
   categories,
+  selectedData,
 }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const user = useUser();
@@ -64,14 +65,41 @@ const AddTicket = ({
   const [selectedLocations, setSelectedLocations] = useState("");
   const [selectedCategoriesId, setSelectedCategoriesId] = useState("");
   const [selectedCategories, setSelectedCategories] = useState("");
-  const [images, setImages] = useState([]);
-  const [previewImages, setPreviewImages] = useState([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
 
   const MAX_SIZE = 3 * 1024 * 1024; // 3MB
   const TITLE_MAX = 50;
   const DESC_MAX = 1000;
+
+  // console.log("selectedData", selectedData);
+
+  // ======================
+  // INIT DATA
+  // ======================
+  useEffect(() => {
+    if (open && selectedData) {
+      setLocationId(selectedData?.location_id || "");
+      setTicketCode(selectedData?.ticket_code || "");
+      setTicketTitle(selectedData?.ticket_title || "");
+      setTicketDescription(selectedData?.ticket_description || "");
+      setCategory(selectedData?.category_id || "");
+      setStatus(selectedData?.status || "");
+      setSelectedLocationsId(selectedData?.location_id || "");
+      setSelectedCategoriesId(selectedData?.category_id || "");
+
+      // FIX IMAGE INIT
+      setExistingImages(selectedData?.images || []);
+      setNewImages([]);
+    }
+  }, [open, selectedData]);
+
+  // ======================
+  // TOTAL IMAGE
+  // ======================
+  const totalImages = existingImages.length + newImages.length;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,7 +141,7 @@ const AddTicket = ({
       return;
     }
 
-    if (images.length > 3) {
+    if (totalImages > 3) {
       onNotify?.({
         open: true,
         message: "Maksimal 3 gambar",
@@ -131,39 +159,43 @@ const AddTicket = ({
       formData.append("ticket_title", ticketTitle);
       formData.append("ticket_description", ticketDescription);
       formData.append("user_id", user.id);
+      formData.append("ticket_code", tickeCode);
 
-      images.forEach((file) => {
+      // NEW IMAGES
+      newImages.forEach((file) => {
         formData.append("images", file);
       });
 
-      const res = await axios.post("/api/my-tickets/create-ticket", formData);
+      // EXISTING IMAGES
+      formData.append("existing_images", JSON.stringify(existingImages));
+
+      const res = await axios.post("/api/my-tickets/update-ticket", formData);
 
       if (res?.data?.success) {
         onNotify?.({
           open: true,
-          message: "Ticket berhasil dibuat",
+          message: "Ticket berhasil diperbarui",
           severity: "success",
         });
 
         getAllData?.();
 
         setTimeout(() => {
-          clearForm();
-          setImages([]);
-          setPreviewImages([]);
+          setNewImages([]);
+          setExistingImages([]);
           onClose?.();
           loadingFalse?.();
         }, 800);
       } else {
         onNotify?.({
           open: true,
-          message: res?.data?.message || "Gagal membuat ticket",
+          message: res?.data?.message || "Gagal perbarui ticket",
           severity: "error",
         });
         loadingFalse?.();
       }
     } catch (err) {
-      console.log("ERROR CREATE TICKET:", err.response || err);
+      console.log("ERROR UPDATE TICKET:", err.response || err);
 
       onNotify?.({
         open: true,
@@ -175,6 +207,9 @@ const AddTicket = ({
     }
   };
 
+  // ======================
+  // HANDLE UPLOAD
+  // ======================
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
 
@@ -189,7 +224,7 @@ const AddTicket = ({
       }
     }
 
-    if (files.length + images.length > 3) {
+    if (files.length + totalImages > 3) {
       onNotify?.({
         open: true,
         message: "Maksimal 3 gambar",
@@ -198,35 +233,21 @@ const AddTicket = ({
       return;
     }
 
-    const newImages = [...images, ...files];
-    setImages(newImages);
-
-    const previews = newImages.map((file) => URL.createObjectURL(file));
-    setPreviewImages(previews);
+    setNewImages((prev) => [...prev, ...files]);
 
     // reset input
     e.target.value = "";
   };
 
-  const handleRemoveImage = (index) => {
-    const newImages = images.filter((_, i) => i !== index);
-    setImages(newImages);
-
-    const previews = newImages.map((file) => URL.createObjectURL(file));
-    setPreviewImages(previews);
+  // ======================
+  // HANDLE REMOVE
+  // ======================
+  const handleRemoveExisting = (index) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const clearForm = () => {
-    setTicketCode("");
-    setLocationId("");
-    setTicketTitle("");
-    setTicketDescription("");
-    setCategory("");
-    setStatus("");
-    setSelectedLocationsId("");
-    setSelectedLocations("");
-    setSelectedCategoriesId("");
-    setSelectedCategories("");
+  const handleRemoveNew = (index) => {
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handlePreviewImage = (src) => {
@@ -267,11 +288,22 @@ const AddTicket = ({
           }}
         >
           <Typography variant="h6" component="h2" sx={{ fontWeight: "bold" }}>
-            Form Buat Tiket
+            Form Ubah Data
           </Typography>
         </Box>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
+            <Grid size={12}>
+              <TextField
+                label="Kode Tiket"
+                variant="filled"
+                fullWidth
+                value={tickeCode}
+                required
+                disabled
+                color="primary"
+              />
+            </Grid>
             <Grid size={12}>
               <Autocomplete
                 options={locations}
@@ -433,10 +465,10 @@ const AddTicket = ({
                   flexWrap: "wrap",
                 }}
               >
-                {/* PREVIEW IMAGE */}
-                {previewImages.map((src, index) => (
+                {/* EXISTING IMAGES */}
+                {existingImages.map((src, index) => (
                   <Box
-                    key={index}
+                    key={`old-${index}`}
                     sx={{
                       width: 85,
                       height: 85,
@@ -449,7 +481,6 @@ const AddTicket = ({
                   >
                     <img
                       src={src}
-                      alt="preview"
                       onClick={() => handlePreviewImage(src)}
                       style={{
                         width: "100%",
@@ -459,11 +490,10 @@ const AddTicket = ({
                       }}
                     />
 
-                    {/* REMOVE BUTTON */}
                     <Box
                       onClick={(e) => {
-                        e.stopPropagation(); // Mencegah klik pada gambar penting
-                        handleRemoveImage(index);
+                        e.stopPropagation();
+                        handleRemoveExisting(index);
                       }}
                       sx={{
                         position: "absolute",
@@ -477,10 +507,6 @@ const AddTicket = ({
                         alignItems: "center",
                         justifyContent: "center",
                         cursor: "pointer",
-                        transition: "0.2s",
-                        "&:hover": {
-                          bgcolor: "error.main",
-                        },
                       }}
                     >
                       <CloseIcon sx={{ fontSize: 14, color: "#fff" }} />
@@ -488,8 +514,61 @@ const AddTicket = ({
                   </Box>
                 ))}
 
+                {/* NEW IMAGES */}
+                {newImages.map((file, index) => {
+                  const src = URL.createObjectURL(file);
+
+                  return (
+                    <Box
+                      key={`new-${index}`}
+                      sx={{
+                        width: 85,
+                        height: 85,
+                        borderRadius: "10px",
+                        overflow: "hidden",
+                        position: "relative",
+                        border: "1px solid #e0e0e0",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      <img
+                        src={src}
+                        onClick={() => handlePreviewImage(src)}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          cursor: "pointer",
+                        }}
+                      />
+
+                      <Box
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveNew(index);
+                        }}
+                        sx={{
+                          position: "absolute",
+                          top: 4,
+                          right: 4,
+                          width: 20,
+                          height: 20,
+                          borderRadius: "50%",
+                          bgcolor: "rgba(0,0,0,0.6)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <CloseIcon sx={{ fontSize: 14, color: "#fff" }} />
+                      </Box>
+                    </Box>
+                  );
+                })}
+
                 {/* UPLOAD BOX */}
-                {images.length < 3 && (
+                {totalImages < 3 && (
                   <label htmlFor="upload-image">
                     <Box
                       sx={{
@@ -580,7 +659,7 @@ const AddTicket = ({
                   loading && <CircularProgress size={22} color="inherit" />
                 }
               >
-                {loading ? "Loading..." : "Buat Tiket"}
+                {loading ? "Loading..." : "Perbarui Ticket"}
               </Button>
             </Grid>
           </Grid>
@@ -595,4 +674,4 @@ const AddTicket = ({
   );
 };
 
-export default AddTicket;
+export default EditTicket;

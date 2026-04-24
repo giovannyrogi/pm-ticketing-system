@@ -163,7 +163,7 @@ export async function POST(req) {
       savedFiles.push({
         buffer,
         filepath,
-        dbPath: `/uploads/tickets/${filename}`,
+        dbPath: `/api/uploads/tickets/${ticketCode}/${filename}`,
       });
 
       index++;

@@ -16,6 +16,9 @@ import axios from "axios";
 import Notification from "@/app/components/notification/Notification";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
 import AddTicket from "./AddTicket";
+import StatusTag from "@/app/components/status-tag/StatusTag";
+import EditTicket from "./EditTicket";
+import DeleteTicket from "./DeleteTicket";
 
 const MyTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -110,6 +113,12 @@ const MyTickets = () => {
     setOpenDeleteModal(true);
   };
 
+  const handleView = (record) => {
+    // console.log("view record", record);
+    setSelectedData(record);
+    // bisa arahkan ke halaman detail tiket dengan membawa id tiket
+  };
+
   // Utility untuk filter dinamis
   function generateFilters(data, key) {
     return [...new Set(data.map((item) => item[key]))]
@@ -135,9 +144,7 @@ const MyTickets = () => {
       title: "Kode Tiket",
       dataIndex: "ticket_code",
       render: (text, record) => (
-        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
-          {record.ticket_code}
-        </Typography>
+        <StatusTag label={record?.ticket_code} color={"green"} />
       ),
       width: 150,
     },
@@ -158,15 +165,15 @@ const MyTickets = () => {
     },
     {
       title: "Kategori",
-      dataIndex: "category",
+      dataIndex: "category_name",
       filters: categoryFilters,
-      onFilter: createOnFilter("category"),
+      onFilter: createOnFilter("category_name"),
       filterSearch: true,
-      sorter: (a, b) => a.category.localeCompare(b.category),
+      sorter: (a, b) => a.category_name.localeCompare(b.category_name),
       sortDirections: ["ascend", "descend"],
       render: (text, record) => (
         <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
-          {record.category}
+          {record.category_name}
         </Typography>
       ),
       width: 200,
@@ -179,48 +186,59 @@ const MyTickets = () => {
       filterSearch: true,
       sorter: (a, b) => a.status.localeCompare(b.status),
       sortDirections: ["ascend", "descend"],
-      render: (text, record) => (
-        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
-          {record.status}
-        </Typography>
-      ),
+      render: (text, record) => <StatusTag label={record?.status} />,
       width: 200,
+      align: "center",
     },
     {
       title: "Actions",
       key: "action",
       align: "center",
-      width: 100,
+      width: 50,
       fixed: "right",
-      render: (text, record) => (
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Button
-            size="small"
-            variant={"contained"}
-            color="info"
-            onClick={() => handleEdit(record)}
-            sx={{ minWidth: 0, px: 1 }}
-          >
-            <Icon icon="line-md:edit" fontSize={18} />
-          </Button>
-          <Button
-            size="small"
-            variant={"contained"}
-            color="error"
-            onClick={() => handleDelete(record)}
-            sx={{ minWidth: 0, px: 1 }}
-          >
-            <Icon icon="line-md:close-circle" fontSize={18} />
-          </Button>
-        </Box>
-      ),
+      render: (text, record) => {
+        const isPending = record.status === "pending";
+
+        return (
+          <Box display="flex" gap={1} justifyContent="center">
+            {/* EDIT hanya pending */}
+            {isPending && (
+              <Button
+                size="small"
+                variant="contained"
+                color="info"
+                onClick={() => handleEdit(record)}
+              >
+                <Icon fontSize={18} icon="line-md:edit" />
+              </Button>
+            )}
+
+            {/* DELETE hanya pending */}
+            {isPending && (
+              <Button
+                size="small"
+                variant="contained"
+                color="error"
+                onClick={() => handleDelete(record)}
+              >
+                <Icon fontSize={18} icon="line-md:trash" />
+              </Button>
+            )}
+
+            {/* VIEW hanya proses & selesai */}
+            {!isPending && (
+              <Button
+                size="small"
+                variant="contained"
+                color="success"
+                onClick={() => handleView(record)}
+              >
+                <Icon fontSize={18} icon="ant-design:message-outlined" />
+              </Button>
+            )}
+          </Box>
+        );
+      },
     },
   ];
 
@@ -303,7 +321,7 @@ const MyTickets = () => {
             dataSource={filteredData}
             onChange={onChange}
             showSorterTooltip={{ target: "sorter-icon" }}
-            scroll={{ x: "max-content", y: 420 }}
+            scroll={{ x: "max-content", y: 500 }}
             pagination={{
               pageSize: pageSize,
               showSizeChanger: true,
@@ -311,6 +329,9 @@ const MyTickets = () => {
               showTotal: (total, range) =>
                 `${range[0]}-${range[1]} dari ${total} data`,
             }}
+            // style={{
+            //   height: 4,
+            // }}
           />
         </Paper>
       </ConfigProvider>
@@ -320,31 +341,33 @@ const MyTickets = () => {
         loadingTrue={() => setLoading(true)}
         loadingFalse={() => setLoading(false)}
         loading={loading}
-        getDataTickets={getDataTickets}
+        getAllData={getAllData}
         onNotify={(notif) => setSnackbar(notif)}
         locations={locations}
         categories={categories}
       />
-      {/* <EditCategory
+      <EditTicket
         open={openEditModal}
         onClose={() => setOpenEditModal(false)}
         loadingTrue={() => setLoading(true)}
         loadingFalse={() => setLoading(false)}
         loading={loading}
-        getDataTickets={getDataTickets}
+        getAllData={getAllData}
         onNotify={(notif) => setSnackbar(notif)}
         selectedData={selectedData}
+        locations={locations}
+        categories={categories}
       />
-      <DeleteCategory
+      <DeleteTicket
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
         loadingTrue={() => setLoading(true)}
         loadingFalse={() => setLoading(false)}
         loading={loading}
-        getDataTickets={getDataTickets}
+        getAllData={getAllData}
         onNotify={(notif) => setSnackbar(notif)}
         selectedData={selectedData}
-      /> */}
+      />
       <LoadingBackdrop message="Loading..." open={loading} />
       {/* Snackbar notification */}
       <Notification
