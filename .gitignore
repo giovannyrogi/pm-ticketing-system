@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# file uploads
+/uploads/tickets/
+
 # next.js
 /.next/
 /out/
