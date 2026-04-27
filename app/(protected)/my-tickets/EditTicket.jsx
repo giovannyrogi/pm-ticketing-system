@@ -74,7 +74,7 @@ const EditTicket = ({
   const TITLE_MAX = 50;
   const DESC_MAX = 1000;
 
-  // console.log("selectedData", selectedData);
+  console.log("selectedData", selectedData);
 
   // ======================
   // INIT DATA
@@ -95,6 +95,15 @@ const EditTicket = ({
       setNewImages([]);
     }
   }, [open, selectedData]);
+
+  // ======================
+  // CLEANUP
+  // ======================
+  useEffect(() => {
+  return () => {
+    newImages.forEach((file) => URL.revokeObjectURL(file));
+  };
+}, [newImages]);
 
   // ======================
   // TOTAL IMAGE

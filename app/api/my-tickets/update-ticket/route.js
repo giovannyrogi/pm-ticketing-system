@@ -14,7 +14,10 @@ export async function POST(req) {
   // AUTH
   // =============================
   if (!userCookie) {
-    return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    return Response.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 },
+    );
   }
 
   let user;
@@ -22,7 +25,10 @@ export async function POST(req) {
   try {
     user = JSON.parse(userCookie.value);
   } catch {
-    return Response.json({ success: false, message: "Invalid session" }, { status: 401 });
+    return Response.json(
+      { success: false, message: "Invalid session" },
+      { status: 401 },
+    );
   }
 
   const client = await pool.connect();
@@ -35,6 +41,7 @@ export async function POST(req) {
     const category_id = formData.get("category_id");
     const ticket_title = formData.get("ticket_title");
     const ticket_description = formData.get("ticket_description");
+    const existingImages = JSON.parse(formData.get("existing_images") || "[]");
 
     const files = formData.getAll("images");
 
@@ -42,23 +49,38 @@ export async function POST(req) {
     // VALIDASI
     // =============================
     if (!ticket_code) {
-      return Response.json({ success: false, message: "Ticket code tidak valid" }, { status: 400 });
+      return Response.json(
+        { success: false, message: "Ticket code tidak valid" },
+        { status: 400 },
+      );
     }
 
     if (!location_id || !category_id || !ticket_title || !ticket_description) {
-      return Response.json({ success: false, message: "Semua field wajib diisi" }, { status: 400 });
+      return Response.json(
+        { success: false, message: "Semua field wajib diisi" },
+        { status: 400 },
+      );
     }
 
     if (ticket_title.length > 100) {
-      return Response.json({ success: false, message: "Judul maksimal 100 karakter" }, { status: 400 });
+      return Response.json(
+        { success: false, message: "Judul maksimal 100 karakter" },
+        { status: 400 },
+      );
     }
 
     if (ticket_description.length > 1000) {
-      return Response.json({ success: false, message: "Deskripsi maksimal 1000 karakter" }, { status: 400 });
+      return Response.json(
+        { success: false, message: "Deskripsi maksimal 1000 karakter" },
+        { status: 400 },
+      );
     }
 
     if (files.length > 3) {
-      return Response.json({ success: false, message: "Maksimal 3 gambar" }, { status: 400 });
+      return Response.json(
+        { success: false, message: "Maksimal 3 gambar" },
+        { status: 400 },
+      );
     }
 
     const MAX_SIZE = 3 * 1024 * 1024;
@@ -75,7 +97,7 @@ export async function POST(req) {
      */
     const ticketRes = await client.query(
       `SELECT id, status FROM tickets WHERE ticket_code = $1 AND created_by = $2 LIMIT 1`,
-      [ticket_code, user.id]
+      [ticket_code, user.id],
     );
 
     if (ticketRes.rowCount === 0) {
@@ -98,10 +120,14 @@ export async function POST(req) {
      */
     const oldImagesRes = await client.query(
       `SELECT image_url FROM attachments WHERE ticket_id = $1`,
-      [ticketId]
+      [ticketId],
     );
 
     const oldImages = oldImagesRes.rows.map((r) => r.image_url);
+
+    const imagesToDelete = oldImages.filter(
+      (img) => !existingImages.includes(img),
+    );
 
     /**
      * =============================
@@ -116,7 +142,7 @@ export async function POST(req) {
         ticket_description = $4,
         updated_at = NOW()
       WHERE id = $5`,
-      [location_id, category_id, ticket_title, ticket_description, ticketId]
+      [location_id, category_id, ticket_title, ticket_description, ticketId],
     );
 
     /**
@@ -133,8 +159,19 @@ export async function POST(req) {
     }
 
     if (files.length > 0) {
-      // hapus attachment lama di DB
-      await client.query(`DELETE FROM attachments WHERE ticket_id = $1`, [ticketId]);
+      /**
+       * =============================
+       * DELETE IMAGES (BEFORE INSERT NEW ONES)
+       * =============================
+       */
+      if (imagesToDelete.length > 0) {
+        await client.query(
+          `DELETE FROM attachments 
+          WHERE ticket_id = $1 
+          AND image_url = ANY($2)`,
+          [ticketId, imagesToDelete],
+        );
+      }
 
       let index = 0;
 
@@ -155,7 +192,9 @@ export async function POST(req) {
 
         const safeName = sanitizeFileName(user.full_name || "user");
 
-        const filename = `${safeName}_${ticket_code}_${index}${ext}`;
+        const timestamp = Date.now();
+
+        const filename = `${safeName}_${ticket_code}_${timestamp}_${index}${ext}`;
 
         const filepath = path.join(ticketFolder, filename);
 
@@ -177,7 +216,7 @@ export async function POST(req) {
         await client.query(
           `INSERT INTO attachments (ticket_id, message_id, image_url)
            VALUES ${values}`,
-          [ticketId, ...savedFiles.map((f) => f.dbPath)]
+          [ticketId, ...savedFiles.map((f) => f.dbPath)],
         );
       }
     }
@@ -197,7 +236,7 @@ export async function POST(req) {
           category_id,
         }),
         user.id,
-      ]
+      ],
     );
 
     /**
@@ -213,15 +252,19 @@ export async function POST(req) {
      * =============================
      */
 
-    // hapus file lama
-    for (const img of oldImages) {
+    // hanya hapus yang benar-benar dihapus user
+    for (const img of imagesToDelete) {
       try {
-        const oldPath = path.join(process.cwd(), img.replace("/api/uploads/", "uploads/"));
+        const oldPath = path.join(
+          process.cwd(),
+          img.replace("/api/uploads/", "uploads/"),
+        );
+
         if (fs.existsSync(oldPath)) {
           await fs.promises.unlink(oldPath);
         }
       } catch (err) {
-        console.warn("Gagal hapus file lama:", err.message);
+        console.warn("Gagal hapus file:", err.message);
       }
     }
 
@@ -234,7 +277,6 @@ export async function POST(req) {
       success: true,
       message: "Ticket berhasil diperbarui",
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
 
@@ -245,7 +287,7 @@ export async function POST(req) {
         success: false,
         message: err.message || "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     client.release();
