@@ -9,7 +9,7 @@ const MENU_CONFIG = [
     roles: ["user", "admin", "superadmin"],
   },
   {
-    label: "Ticket List",
+    label: "Daftar Tiket",
     value: "ticketList",
     path: "/ticket-list",
     icon: <Icon icon="mdi:discussion-plus-outline" />,
@@ -17,7 +17,7 @@ const MENU_CONFIG = [
     showIcon: true,
   },
   {
-    label: "My Tickets",
+    label: "Tiket Saya",
     value: "myTickets",
     path: "/my-tickets",
     icon: <Icon icon="oui:nav-ticketing" fontSize="20px" />,
@@ -38,7 +38,7 @@ const MENU_CONFIG = [
         showIcon: true,
       },
       {
-        label: "Locations",
+        label: "Lokasi",
         value: "locations",
         path: "/locations",
         icon: <Icon icon="mdi:map-marker-outline" />,
@@ -46,7 +46,7 @@ const MENU_CONFIG = [
         showIcon: true,
       },
       {
-        label: "Catregory",
+        label: "Kategori",
         value: "category",
         path: "/category",
         icon: <Icon icon="tabler:category" />,

@@ -9,6 +9,7 @@ import {
   Space,
   Button as AntdButton,
   Tag,
+  Tooltip,
 } from "antd";
 import moment from "moment";
 import { Icon } from "@iconify/react";
@@ -19,6 +20,8 @@ import AddTicket from "./AddTicket";
 import StatusTag from "@/app/components/status-tag/StatusTag";
 import EditTicket from "./EditTicket";
 import DeleteTicket from "./DeleteTicket";
+import FontStyle from "@/app/components/font-style/FontStyle";
+import { FilterFilled } from "@ant-design/icons";
 
 const MyTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -141,6 +144,15 @@ const MyTickets = () => {
 
   const columns = [
     {
+      title: "No.",
+      dataIndex: "id",
+      key: "id",
+      width: 50,
+      render: (_, data, index) => {
+        return <FontStyle fontWeight={"500"}>{index + 1}</FontStyle>;
+      },
+    },
+    {
       title: "Kode Tiket",
       dataIndex: "ticket_code",
       render: (text, record) => (
@@ -151,16 +163,27 @@ const MyTickets = () => {
     {
       title: "Subjek Tiket",
       dataIndex: "ticket_title",
-      filters: ticketTitleFilters,
-      onFilter: createOnFilter("ticket_title"),
-      filterSearch: true,
-      sorter: (a, b) => a.ticket_title.localeCompare(b.ticket_title),
-      sortDirections: ["ascend", "descend"],
-      render: (text, record) => (
-        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
-          {record.ticket_title}
-        </Typography>
-      ),
+      // filters: ticketTitleFilters,
+      // onFilter: createOnFilter("ticket_title"),
+      // filterSearch: true,
+      // sorter: (a, b) => a.ticket_title.localeCompare(b.ticket_title),
+      // sortDirections: ["ascend", "descend"],
+      render: (data) => {
+        const shortText =
+          data?.length > 25 ? data.substring(0, 25) + "..." : data;
+
+        return (
+          <Tooltip title={data} placement="topLeft" mouseEnterDelay={0.3}>
+            <span
+              style={{
+                cursor: "pointer",
+              }}
+            >
+              <FontStyle fontWeight={"500"}>{shortText}</FontStyle>
+            </span>
+          </Tooltip>
+        );
+      },
       width: 200,
     },
     {
@@ -169,12 +192,21 @@ const MyTickets = () => {
       filters: categoryFilters,
       onFilter: createOnFilter("category_name"),
       filterSearch: true,
-      sorter: (a, b) => a.category_name.localeCompare(b.category_name),
-      sortDirections: ["ascend", "descend"],
+      // sorter: (a, b) => a.category_name.localeCompare(b.category_name),
+      // sortDirections: ["ascend", "descend"],
       render: (text, record) => (
-        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
-          {record.category_name}
-        </Typography>
+        <StatusTag
+          label={record?.category_name || "-"}
+          color={record?.category_name ? "blue" : "red"}
+        />
+      ),
+      filterIcon: (filtered) => (
+        <FilterFilled
+          style={{
+            color: filtered ? "#ffd666" : "#fff",
+            fontSize: 14,
+          }}
+        />
       ),
       width: 200,
     },
@@ -184,9 +216,17 @@ const MyTickets = () => {
       filters: statusFilters,
       onFilter: createOnFilter("status"),
       filterSearch: true,
-      sorter: (a, b) => a.status.localeCompare(b.status),
-      sortDirections: ["ascend", "descend"],
+      // sorter: (a, b) => a.status.localeCompare(b.status),
+      // sortDirections: ["ascend", "descend"],
       render: (text, record) => <StatusTag label={record?.status} />,
+      filterIcon: (filtered) => (
+        <FilterFilled
+          style={{
+            color: filtered ? "#ffd666" : "#fff",
+            fontSize: 14,
+          }}
+        />
+      ),
       width: 200,
       align: "center",
     },
@@ -209,7 +249,7 @@ const MyTickets = () => {
                 color="info"
                 onClick={() => handleEdit(record)}
               >
-                <Icon fontSize={18} icon="line-md:edit" />
+                <Icon fontSize={18} icon="line-md:edit-full-filled" />
               </Button>
             )}
 
@@ -221,7 +261,7 @@ const MyTickets = () => {
                 color="error"
                 onClick={() => handleDelete(record)}
               >
-                <Icon fontSize={18} icon="line-md:trash" />
+                <Icon fontSize={18} icon="mage:trash-fill" />
               </Button>
             )}
 
@@ -278,9 +318,19 @@ const MyTickets = () => {
         theme={{
           algorithm: antdTheme.defaultAlgorithm,
           token: {
-            colorPrimary: theme.palette.primary.main, // warna utama (angka aktif, outline, dsb)
-            // colorText: theme.palette.text.primary, // warna teks default
-            // colorBgContainer: theme.palette.background.default, // background tabel
+            colorPrimary: theme.palette.primary.main,
+          },
+
+          components: {
+            Table: {
+              headerBg: theme.palette.primary.main,
+              headerColor: "#fff",
+              headerSplitColor: "#fff",
+
+              rowHoverBg: "#f5faff",
+
+              // borderRadius: 10,
+            },
           },
         }}
       >
