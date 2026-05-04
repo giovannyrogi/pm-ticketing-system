@@ -1,13 +1,25 @@
-// Style font untuk bold dan normal, lalu export sebagai komponen terpisah
 import { Typography } from "@mui/material";
 
-const FontStyle = ({ children, fontWeight }) => {
+const FontStyle = ({
+  children,
+  fontWeight = "normal",
+  fontSize = 12,
+  color = "text.primary",
+  sx = {},
+  ...props
+}) => {
   return (
     <Typography
-      style={{
-        fontWeight: fontWeight || "normal", // default ke normal jika tidak diberikan
+      {...props}
+      sx={{
+        fontWeight,
         fontFamily: "Poppins, sans-serif",
-        fontSize: "12px",
+        fontSize: `${fontSize}px`,
+        whiteSpace: "pre-line",
+        wordBreak: "break-word",
+        overflowWrap: "anywhere",
+        color,
+        ...sx, // Merge with custom styles
       }}
     >
       {children}

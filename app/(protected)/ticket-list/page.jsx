@@ -27,15 +27,16 @@ import axios from "axios";
 import moment from "moment";
 import { useUser } from "@/app/utils/useUser";
 import { Icon } from "@iconify/react";
-import { a } from "framer-motion/client";
 import FontStyle from "@/app/components/font-style/FontStyle";
 import StatusTag from "@/app/components/status-tag/StatusTag";
 import { FilterFilled } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
 const TicketList = () => {
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
   const theme = useTheme();
   const user = useUser();
+  const router = useRouter();
   const [tickets, setTickets] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [tab, setTab] = useState("all");
@@ -154,6 +155,12 @@ const TicketList = () => {
     { text: "Selesai", value: "selesai" },
     { text: "Ditolak", value: "ditolak" },
   ];
+
+  const handleView = (record) => {
+    console.log("record", record);
+
+    router.push(`/ticket-details/${record.id}`);
+  };
 
   // =========================
   // TABLE COLUMNS
@@ -300,12 +307,20 @@ const TicketList = () => {
       width: 80,
       fixed: isMobile ? false : "right",
       align: "center",
-      render: (_, data) => {
-        const isPending = data.status === "pending";
+      render: (_, record) => {
+        const isPending = record.status === "pending";
         return (
           <Box display="flex" gap={1} justifyContent="center">
+            <Button
+              size="small"
+              variant="contained"
+              color="info"
+              onClick={() => handleView(record)}
+            >
+              <Icon fontSize={18} icon="ant-design:message-outlined" />
+            </Button>
             {/* Approve ticket */}
-            {isPending && (
+            {/* {isPending && (
               <Button
                 size="small"
                 variant="contained"
@@ -317,10 +332,10 @@ const TicketList = () => {
                   icon="fluent:comment-multiple-checkmark-16-filled"
                 />
               </Button>
-            )}
+            )} */}
 
             {/* Tolak ticket */}
-            {isPending && (
+            {/* {isPending && (
               <Button
                 size="small"
                 variant="contained"
@@ -329,10 +344,10 @@ const TicketList = () => {
               >
                 <Icon fontSize={18} icon="iconamoon:comment-close-fill" />
               </Button>
-            )}
+            )} */}
 
             {/* VIEW hanya proses & selesai */}
-            {!isPending && (
+            {/* {!isPending && (
               <Button
                 size="small"
                 variant="contained"
@@ -341,7 +356,7 @@ const TicketList = () => {
               >
                 <Icon fontSize={18} icon="ant-design:message-outlined" />
               </Button>
-            )}
+            )} */}
           </Box>
         );
       },

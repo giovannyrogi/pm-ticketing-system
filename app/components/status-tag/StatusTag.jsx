@@ -34,9 +34,7 @@ const STATUS_COLOR_MAP = {
  * ambil warna random
  */
 const getRandomColor = () => {
-  return PRESET_COLORS[
-    Math.floor(Math.random() * PRESET_COLORS.length)
-  ];
+  return PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
 };
 
 const StatusTag = ({
@@ -61,6 +59,7 @@ const StatusTag = ({
       color={finalColor}
       variant={variant}
       style={{
+        fontSize: 12,
         fontWeight: "bold",
         textTransform: "capitalize",
         borderRadius: 6,
