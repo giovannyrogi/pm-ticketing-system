@@ -11,7 +11,7 @@ const CONTENT_TYPE_MAP = {
   ".webp": "image/webp",
 };
 
-const ALLOWED_ROOTS = ["tickets", "messages"];
+const ALLOWED_ROOTS = ["tickets", "ticket-messages"];
 
 export async function GET(request, context) {
   try {

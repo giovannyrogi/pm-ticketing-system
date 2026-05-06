@@ -18,6 +18,7 @@ const PRESET_COLORS = [
   "blue",
   "geekblue",
   "purple",
+  
 ];
 
 /**
@@ -25,7 +26,7 @@ const PRESET_COLORS = [
  */
 const STATUS_COLOR_MAP = {
   pending: "gold",
-  proses: "blue",
+  proses: "geekblue",
   selesai: "green",
   ditolak: "red",
 };

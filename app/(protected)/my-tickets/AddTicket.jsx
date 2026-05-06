@@ -22,6 +22,7 @@ import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import CloseIcon from "@mui/icons-material/Close";
 import { useUser } from "@/app/utils/useUser";
 import ImagePreviewModal from "@/app/components/image/ImagePreviewModal";
+import Image from "next/image";
 
 const AddTicket = ({
   open,
@@ -113,6 +114,15 @@ const AddTicket = ({
       return;
     }
 
+    if (ticketDescription.length > DESC_MAX) {
+      onNotify?.({
+        open: true,
+        message: "Maksimal 1000 karakter",
+        severity: "warning",
+      });
+      return;
+    }
+
     if (images.length > 3) {
       onNotify?.({
         open: true,
@@ -183,7 +193,7 @@ const AddTicket = ({
         onNotify?.({
           open: true,
           message: "Ukuran gambar maksimal 3MB",
-          severity: "warning",
+          severity: "error",
         });
         return;
       }
@@ -193,7 +203,7 @@ const AddTicket = ({
       onNotify?.({
         open: true,
         message: "Maksimal 3 gambar",
-        severity: "warning",
+        severity: "error",
       });
       return;
     }
@@ -447,17 +457,26 @@ const AddTicket = ({
                       boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
                     }}
                   >
-                    <img
-                      src={src}
-                      alt="preview"
+                    <Box
                       onClick={() => handlePreviewImage(src)}
-                      style={{
+                      sx={{
+                        position: "relative",
                         width: "100%",
                         height: "100%",
-                        objectFit: "cover",
                         cursor: "pointer",
                       }}
-                    />
+                    >
+                      <Image
+                        src={src}
+                        alt="preview"
+                        fill
+                        unoptimized
+                        style={{
+                          objectFit: "cover",
+                        }}
+                        loading="eager"
+                      />
+                    </Box>
 
                     {/* REMOVE BUTTON */}
                     <Box

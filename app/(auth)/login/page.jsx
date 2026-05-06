@@ -128,6 +128,7 @@ const LoginPage = () => {
             width={160}
             height={100}
             // style=1{backgroundColor:'orange'}}
+            loading="eager"
           />
         </Box>
         <form

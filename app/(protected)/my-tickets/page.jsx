@@ -22,8 +22,10 @@ import EditTicket from "./EditTicket";
 import DeleteTicket from "./DeleteTicket";
 import FontStyle from "@/app/components/font-style/FontStyle";
 import { FilterFilled } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
 const MyTickets = () => {
+  const router = useRouter();
   const [tickets, setTickets] = useState([]);
   const [locations, setLocations] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -117,11 +119,10 @@ const MyTickets = () => {
   };
 
   const handleView = (record) => {
-    // console.log("view record", record);
-    setSelectedData(record);
-    // bisa arahkan ke halaman detail tiket dengan membawa id tiket
-  };
+    // console.log("record", record);
 
+    router.push(`/ticket-details/${record.id}`);
+  };
   // Utility untuk filter dinamis
   function generateFilters(data, key) {
     return [...new Set(data.map((item) => item[key]))]

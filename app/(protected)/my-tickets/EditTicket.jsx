@@ -22,6 +22,7 @@ import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import CloseIcon from "@mui/icons-material/Close";
 import { useUser } from "@/app/utils/useUser";
 import ImagePreviewModal from "@/app/components/image/ImagePreviewModal";
+import Image from "next/image";
 
 const EditTicket = ({
   open,
@@ -100,10 +101,10 @@ const EditTicket = ({
   // CLEANUP
   // ======================
   useEffect(() => {
-  return () => {
-    newImages.forEach((file) => URL.revokeObjectURL(file));
-  };
-}, [newImages]);
+    return () => {
+      newImages.forEach((file) => URL.revokeObjectURL(file));
+    };
+  }, [newImages]);
 
   // ======================
   // TOTAL IMAGE
@@ -488,16 +489,26 @@ const EditTicket = ({
                       boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
                     }}
                   >
-                    <img
-                      src={src}
+                    <Box
                       onClick={() => handlePreviewImage(src)}
-                      style={{
+                      sx={{
+                        position: "relative",
                         width: "100%",
                         height: "100%",
-                        objectFit: "cover",
                         cursor: "pointer",
                       }}
-                    />
+                    >
+                      <Image
+                        src={src}
+                        alt="preview"
+                        fill
+                        unoptimized
+                        style={{
+                          objectFit: "cover",
+                        }}
+                        loading="eager"
+                      />
+                    </Box>
 
                     <Box
                       onClick={(e) => {

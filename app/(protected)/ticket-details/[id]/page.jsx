@@ -1,67 +1,140 @@
 "use client";
 
-import FontStyle from "@/app/components/font-style/FontStyle";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
-import StatusTag from "@/app/components/status-tag/StatusTag";
-import { useUser } from "@/app/utils/useUser";
-import { Icon } from "@iconify/react";
-import { Box, Button, Divider, Grid, Paper, Typography } from "@mui/material";
+import Notification from "@/app/components/notification/Notification";
+import { Box, Grid, Paper, Typography, useMediaQuery } from "@mui/material";
 import axios from "axios";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useUser } from "@/app/utils/useUser";
+import TicketHeader from "@/app/components/tickets/TicketHeader";
+import TicketInformation from "@/app/components/tickets/TicketInformation";
+import TicketDescription from "@/app/components/tickets/TicketDescription";
+import TicketAttachments from "@/app/components/tickets/TicketAttachments";
+import TicketFooter from "@/app/components/tickets/TicketFooter";
+import TicketActions from "@/app/components/tickets/TicketActions";
+import TicketMessages from "@/app/components/tickets/TicketMessages";
+import TicketReplyForm from "@/app/components/tickets/TicketReplyForm";
 
 const TicketDetail = () => {
   const { id } = useParams();
   const user = useUser();
+  const isMobile = useMediaQuery("(max-width: 600px)");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [images, setImages] = useState([]);
+  const [previewImages, setPreviewImages] = useState([]);
+  const messagesEndRef = useRef(null);
 
-  const getDetail = async () => {
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const MAX_SIZE = 3 * 1024 * 1024; // gambar maks 3MB
+  const DESC_MAX = 500;
+
+  const isAssignedAdmin =
+    ["admin", "superadmin"].includes(user?.user?.role) &&
+    user?.user?.id === data?.admin?.id;
+
+  const isTicketOwner = Number(user?.user?.id) === Number(data?.user?.id);
+
+  const canReply = data?.waiting_reply_from === user?.user?.role;
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  };
+
+  const getDetail = async (showLoading = false) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true); /* untuk refresh */
 
       const res = await axios.get(`/api/ticket-details/${id}`);
+      console.log("response", res);
 
       setTimeout(() => {
         if (res.data.success) {
-          setData(res.data.data);
+          setData(res?.data?.data);
+          setMessages(res?.data?.data?.messages);
         } else {
           setData(null);
         }
 
-        setLoading(false);
-        setInitialized(true);
-      }, 1000); // delay biar smooth UX
+        if (showLoading) {
+          setLoading(false);
+          setInitialized(true);
+        }
+      }, 1000);
     } catch (err) {
       console.log("ERROR:", err);
 
       setTimeout(() => {
         setData(null);
-        setLoading(false);
-        setInitialized(true);
+        if (showLoading) {
+          setLoading(false);
+          setInitialized(true);
+        }
       }, 1000);
     }
   };
 
   useEffect(() => {
-    if (id) getDetail();
+    if (id) getDetail(true);
   }, [id]);
 
-  /**
-   * ===============================
-   * LOADING STATE
-   * ===============================
-   */
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleAccept = async () => {
+    try {
+      setLoading(true);
+
+      const res = await axios.post("/api/tickets/approve-ticket", {
+        ticket_id: data.id,
+      });
+
+      if (res.data.success) {
+        setSnackbar({
+          open: true,
+          message: "Berhasil menerima ticket",
+          severity: "success",
+        });
+
+        await getDetail();
+      } else {
+        setSnackbar({
+          open: true,
+          message: res?.data?.message || "Terjadi kesalahan",
+          severity: "error",
+        });
+      }
+
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+    } catch (err) {
+      console.log("error", err);
+
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+    }
+  };
+
   if (!initialized || loading) {
     return <LoadingBackdrop message="Loading ticket..." open />;
   }
 
-  /**
-   * ===============================
-   * NOT FOUND
-   * ===============================
-   */
   if (!data) {
     return (
       <Box p={3}>
@@ -72,11 +145,135 @@ const TicketDetail = () => {
     );
   }
 
-  /**
-   * ===============================
-   * DATA
-   * ===============================
-   */
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    for (let file of files) {
+      if (file.size > MAX_SIZE) {
+        setSnackbar({
+          open: true,
+          message: "Ukuran gambar maksimal 3MB",
+          severity: "error",
+        });
+        return;
+      }
+    }
+
+    if (files.length + images.length > 3) {
+      setSnackbar({
+        open: true,
+        message: "Maksimal 3 gambar",
+        severity: "error",
+      });
+      return;
+    }
+
+    const newImages = [...images, ...files];
+    setImages(newImages);
+
+    const previews = newImages.map((file) => URL.createObjectURL(file));
+    setPreviewImages(previews);
+
+    // reset input
+    e.target.value = "";
+  };
+
+  const handleRemoveImage = (index) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+
+    const previews = newImages.map((file) => URL.createObjectURL(file));
+    setPreviewImages(previews);
+  };
+
+  const handleSendMessage = async () => {
+    try {
+      setSendingMessage(true);
+      // validasi
+      if (!message) {
+        setSnackbar({
+          open: true,
+          message: "Pesan tidak boleh kosong",
+          severity: "error",
+        });
+        setSendingMessage(false);
+        return;
+      }
+
+      if (message.length > DESC_MAX) {
+        setSnackbar({
+          open: true,
+          message: "Maksimal 500 karakter",
+          severity: "error",
+        });
+        setSendingMessage(false);
+        return;
+      }
+
+      if (images.length > 3) {
+        setSnackbar({
+          open: true,
+          message: "Maksimal 3 gambar",
+          severity: "error",
+        });
+        setSendingMessage(false);
+        return;
+      }
+
+      const formData = new FormData();
+
+      formData.append("ticket_id", data.id);
+
+      formData.append("message", message);
+
+      images.forEach((img) => {
+        formData.append("images", img);
+      });
+
+      const res = await axios.post("/api/tickets/send-message", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.data.success) {
+        setMessages((prev) => [...prev, res.data.data]);
+
+        setMessage("");
+
+        setImages([]);
+
+        setPreviewImages([]);
+
+        setSnackbar({
+          open: true,
+          message: "Pesan berhasil dikirim",
+          severity: "success",
+        });
+
+        await getDetail(false);
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.data.message || "Terjadi kesalahan",
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      console.log("error", err);
+
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || "Terjadi kesalahan",
+        severity: "error",
+      });
+    } finally {
+      setTimeout(() => {
+        setSendingMessage(false);
+      }, 1000);
+    }
+  };
+
   return (
     <Box>
       <Paper
@@ -89,223 +286,64 @@ const TicketDetail = () => {
         }}
       >
         <Grid container spacing={1}>
-          {/* HEADER */}
-          <Grid size={12}>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              flexWrap="wrap"
-              gap={1}
-            >
-              <FontStyle fontWeight="bold" fontSize={14} color="text.disabled">
-                #{data?.ticket_code || "-"}
-              </FontStyle>
-
-              <FontStyle fontSize={12} color="text.disabled">
-                {data?.created_at_human}
-              </FontStyle>
-            </Box>
-          </Grid>
-
-          <Grid size={12}>
-            <Divider />
-          </Grid>
-
-          {/* GRID INFO */}
-          <Grid container spacing={2} size={12} mt={1}>
-            {/* LOKASI */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Box display="flex" gap={1}>
-                <Icon icon="mdi:map-marker" width={18} color="#9e9e9e" />
-
-                <Box>
-                  <FontStyle
-                    fontSize={12}
-                    fontWeight="bold"
-                    color="text.disabled"
-                  >
-                    Lokasi
-                  </FontStyle>
-                  <FontStyle fontSize={13} fontWeight="500">
-                    {data?.location?.name || "-"}
-                  </FontStyle>
-                </Box>
-              </Box>
-            </Grid>
-
-            {/* KATEGORI */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Box display="flex" gap={1}>
-                <Icon icon="mdi:shape-outline" width={18} color="#9e9e9e" />
-
-                <Box>
-                  <FontStyle
-                    fontSize={12}
-                    fontWeight="bold"
-                    color="text.disabled"
-                  >
-                    Kategori
-                  </FontStyle>
-
-                  <StatusTag
-                    color={data?.category?.name ? "blue" : "red"}
-                    label={data?.category?.name || "-"}
-                  />
-                </Box>
-              </Box>
-            </Grid>
-
-            {/* STATUS */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Box display="flex" gap={1}>
-                <Icon icon="mdi:progress-clock" width={18} color="#9e9e9e" />
-
-                <Box>
-                  <FontStyle
-                    fontSize={12}
-                    fontWeight="bold"
-                    color="text.disabled"
-                  >
-                    Status
-                  </FontStyle>
-
-                  <StatusTag label={data?.status || "-"} />
-                </Box>
-              </Box>
-            </Grid>
-          </Grid>
-
-          {/* SUBJEK */}
-          <Grid size={12} mt={2}>
-            <FontStyle fontSize={12} fontWeight="bold" color="text.disabled">
-              Subjek Tiket
-            </FontStyle>
-
-            <FontStyle fontSize={12} fontWeight="600">
-              {data?.ticket_title || "-"}
-            </FontStyle>
-          </Grid>
-
-          {/* DESKRIPSI */}
-          <Grid size={12} mt={2}>
-            <FontStyle fontSize={12} fontWeight="bold" color="text.disabled">
-              Deskripsi
-            </FontStyle>
-
-            <Box
-              sx={{
-                mt: 1,
-                p: 1.5,
-                borderRadius: 2,
-                backgroundColor: "#fafafa",
-                border: "1px solid #eee",
-              }}
-            >
-              <FontStyle
-                fontSize={13}
-                sx={{
-                  lineHeight: 1.6,
-                  wordBreak: "break-word",
-                  overflowWrap: "anywhere",
-                  textAlign: "justify",
-                }}
-              >
-                {data.ticket_description || "-"}
-              </FontStyle>
-            </Box>
-          </Grid>
-
-          {/* GAMBAR */}
-          <Grid size={12} mb={1} mt={2}>
-            <FontStyle fontSize={12} fontWeight="bold" color="text.disabled">
-              Lampiran
-            </FontStyle>
-
-            {data.images?.length > 0 ? (
-              <Box
-                sx={{
-                  mt: 1,
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr",
-                    sm:
-                      data.images.length === 1
-                        ? "1fr"
-                        : data.images.length === 2
-                          ? "1fr 1fr"
-                          : "1fr 1fr 1fr",
-                  },
-                  gap: 2,
-                }}
-              >
-                {data.images.map((img, i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      transition: "0.25s",
-                      "&:hover": {
-                        transform: "scale(1.03)",
-                        boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
-                      },
-                    }}
-                  >
-                    <img
-                      src={img}
-                      style={{
-                        width: "100%",
-                        height: 140,
-                        objectFit: "cover",
-                      }}
-                    />
-                  </Box>
-                ))}
-              </Box>
-            ) : (
-              <Box
-                sx={{
-                  mt: 1,
-                  p: 2,
-                  border: "1px dashed #ddd",
-                  borderRadius: 2,
-                  textAlign: "center",
-                  color: "text.disabled",
-                }}
-              >
-                <Icon icon="mdi:image-off-outline" width={26} />
-                <FontStyle fontSize={12}>Tidak ada gambar</FontStyle>
-              </Box>
-            )}
-          </Grid>
-
-          <Divider
-            sx={{
-              width: "100%",
-            }}
-          />
-
-          <Grid size={12} align="right">
-            <FontStyle fontSize={12} color="text.disabled" fontWeight="500">
-              {`${data?.user?.name || "-"}`}
-            </FontStyle>
-          </Grid>
-
-          {/* <Grid size={12}>
-            <Button variant="contained">asdsad</Button>
-          </Grid> */}
-
-          {/* ACTION BUTTON (ADMIN ONLY) */}
-          {/* {user?.role === "admin" ||
-            (user?.role === "superadmin" && (
-              <Grid size={12}>
-                <Button variant="contained">asdsad</Button>
-              </Grid>
-            ))} */}
+          <TicketHeader data={data} />
+          <TicketInformation data={data} />
+          <TicketDescription data={data} />
+          <TicketAttachments data={data} isMobile={isMobile} />
+          <TicketFooter data={data} />
         </Grid>
+
+        <TicketActions data={data} user={user} handleAccept={handleAccept} />
+
+        <Notification
+          open={snackbar.open}
+          message={snackbar.message}
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        />
       </Paper>
+
+      {/* =========================
+        CHAT SECTION
+      ========================= */}
+      {data?.status === "proses" && (
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 3,
+            p: { xs: 2, md: 2 },
+            borderRadius: 3,
+            border: "1px solid #eee",
+            boxShadow: "0 6px 24px rgba(0,0,0,0.06)",
+            overflow: "hidden",
+          }}
+        >
+          {/* CHAT */}
+          <>
+            <TicketMessages messages={messages} user={user} />
+
+            {((isAssignedAdmin &&
+              ["admin", "superadmin"].includes(user?.user?.role)) ||
+              (isTicketOwner && canReply)) && (
+              <TicketReplyForm
+                message={message}
+                setMessage={setMessage}
+                onSubmit={handleSendMessage}
+                loading={sendingMessage}
+                data={data}
+                user={user}
+                images={images}
+                previewImages={previewImages}
+                handleImageChange={handleImageChange}
+                handleRemoveImage={handleRemoveImage}
+                DESC_MAX={DESC_MAX}
+              />
+            )}
+            <Box ref={messagesEndRef} />
+          </>
+        </Paper>
+      )}
+      <LoadingBackdrop message="Memproses Pesan..." open={sendingMessage} />
     </Box>
   );
 };

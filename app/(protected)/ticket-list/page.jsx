@@ -72,15 +72,20 @@ const TicketList = () => {
   }, []);
 
   // =========================
+  // USER LOGIN ID
+  // =========================
+  const currentUserId = user?.user?.id;
+
+  // =========================
   // FILTER LOGIC
   // =========================
   useEffect(() => {
     const all = tickets;
 
     const pending = tickets.filter((t) => !t.assigned_to);
-    const mine = tickets.filter((t) => t.assigned_to === user?.id);
+    const mine = tickets.filter((t) => t.assigned_to === currentUserId);
     const others = tickets.filter(
-      (t) => t.assigned_to && t.assigned_to !== user?.id,
+      (t) => t.assigned_to && t.assigned_to !== currentUserId,
     );
     const proses = tickets.filter((t) => t.status === "proses");
     const selesai = tickets.filter((t) => t.status === "selesai");
@@ -129,7 +134,11 @@ const TicketList = () => {
       data = data.filter(
         (t) =>
           t.ticket_title.toLowerCase().includes(search.toLowerCase()) ||
-          t.ticket_code.toLowerCase().includes(search.toLowerCase()),
+          t.ticket_code.toLowerCase().includes(search.toLowerCase()) ||
+          t.category.name.toLowerCase().includes(search.toLowerCase()) ||
+          t.status.toLowerCase().includes(search.toLowerCase()) ||
+          t.location?.name.toLowerCase().includes(search.toLowerCase()) ||
+          t.admin?.name.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
@@ -157,7 +166,7 @@ const TicketList = () => {
   ];
 
   const handleView = (record) => {
-    console.log("record", record);
+    // console.log("record", record);
 
     router.push(`/ticket-details/${record.id}`);
   };
@@ -205,15 +214,12 @@ const TicketList = () => {
     },
     {
       title: "Kategori",
-      key: "category_name",
+      key: "category.name",
       render: (_, data) => {
         const category = data.category?.name || "-";
 
         return (
-          <StatusTag
-            label={category}
-            color={category === "-" ? "red" : "blue"}
-          />
+          <StatusTag label={category} color={'blue'} />
         );
       },
       width: 160,
@@ -232,9 +238,9 @@ const TicketList = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      // filters: statusFilters,
-      // onFilter: createOnFilter("status"),
-      // filterSearch: true,
+      filters: statusFilters,
+      onFilter: createOnFilter("status"),
+      filterSearch: true,
       width: 120,
       align: "center",
       filterIcon: (filtered) => (
@@ -258,33 +264,17 @@ const TicketList = () => {
     },
     {
       title: "Admin",
-      dataIndex: "admin_name",
-      key: "admin_name",
+      dataIndex: "admin.name",
+      key: "admin.name",
       width: 150,
       align: "center",
-      render: (data) => {
-        return data ? (
-          <Tag
-            color="purple"
-            style={{
-              fontWeight: 600,
-              fontFamily: "Poppins, sans-serif",
-              fontSize: "12px",
-            }}
-          >
-            {data}
-          </Tag>
+      render: (_, data) => {
+        const adminName = data?.admin?.name;
+
+        return adminName ? (
+          <StatusTag label={adminName} color={theme.palette.primary.main} />
         ) : (
-          <Tag
-            color="red"
-            style={{
-              fontWeight: 600,
-              fontFamily: "Poppins, sans-serif",
-              fontSize: "12px",
-            }}
-          >
-            -
-          </Tag>
+          <FontStyle fontWeight={"500"}>-</FontStyle>
         );
       },
     },

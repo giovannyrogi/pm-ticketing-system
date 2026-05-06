@@ -31,7 +31,7 @@ export async function GET() {
       );
     }
 
-    // 🔥 hanya admin / superadmin
+    // hanya admin / superadmin
     if (!["admin", "superadmin"].includes(user.role)) {
       return Response.json(
         { success: false, message: "Forbidden" },
@@ -77,16 +77,7 @@ export async function GET() {
 
         -- stats
         ts.views_count,
-        ts.likes_count,
-
-        -- last message
-        (
-          SELECT tm.message
-          FROM ticket_messages tm
-          WHERE tm.ticket_id = t.id
-          ORDER BY tm.created_at DESC
-          LIMIT 1
-        ) as last_message
+        ts.likes_count
 
       FROM tickets t
       LEFT JOIN users u ON t.created_by = u.id
@@ -158,7 +149,7 @@ export async function GET() {
             likes: row.likes_count || 0,
           },
 
-          last_message: row.last_message || null,
+          // last_message: row.last_message || null,
 
           images: [],
         };

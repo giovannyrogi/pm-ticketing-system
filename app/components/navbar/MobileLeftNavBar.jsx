@@ -151,6 +151,7 @@ const MobileLeftNavBar = ({
             width={100}
             height={60}
             priority
+            loading="eager"
           />
           {/* <Typography
               sx={{

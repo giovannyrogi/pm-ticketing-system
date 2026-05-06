@@ -174,8 +174,8 @@ export async function POST(req) {
     // =============================
     const ticketResult = await client.query(
       `INSERT INTO tickets
-      (ticket_code, created_by, location_id, ticket_title, ticket_description, category_id)
-      VALUES ($1,$2,$3,$4,$5,$6)
+      (ticket_code, created_by, location_id, ticket_title, ticket_description, category_id, last_reply_role, waiting_reply_from)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
       RETURNING id`,
       [
         ticketCode,
@@ -184,6 +184,8 @@ export async function POST(req) {
         ticket_title,
         ticket_description,
         category_id,
+        "user",
+        "admin",
       ],
     );
 

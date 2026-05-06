@@ -1,6 +1,5 @@
 import formatTimeAgo from "@/app/utils/formatTime";
 import pool from "@/lib/dbConfig";
-import moment from "moment";
 import { cookies } from "next/headers";
 
 export async function GET(req, { params }) {
@@ -17,7 +16,7 @@ export async function GET(req, { params }) {
     if (!id || isNaN(Number(id))) {
       return Response.json(
         { success: false, message: "Invalid ID" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,17 +31,18 @@ export async function GET(req, { params }) {
     if (!userCookie) {
       return Response.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     let user;
+
     try {
       user = JSON.parse(userCookie.value);
     } catch {
       return Response.json(
         { success: false, message: "Invalid session" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -55,7 +55,7 @@ export async function GET(req, { params }) {
 
     /**
      * ===============================
-     * QUERY (DENGAN FILTER AKSES)
+     * QUERY DETAIL TICKET
      * ===============================
      */
     const baseQuery = `
@@ -69,6 +69,8 @@ export async function GET(req, { params }) {
         t.created_at,
         t.updated_at,
         t.assigned_to,
+        t.last_reply_role,
+        t.waiting_reply_from,
         t.created_by,
 
         -- user
@@ -87,7 +89,7 @@ export async function GET(req, { params }) {
         l.id as location_id,
         l.location_name,
 
-        -- attachment
+        -- attachment ticket
         att.image_url,
 
         -- stats
@@ -104,24 +106,40 @@ export async function GET(req, { params }) {
         ) as last_message
 
       FROM tickets t
-      LEFT JOIN users u ON t.created_by = u.id
-      LEFT JOIN users a ON t.assigned_to = a.id
-      LEFT JOIN categories c ON t.category_id = c.id
-      LEFT JOIN locations l ON t.location_id = l.id
-      LEFT JOIN attachments att ON att.ticket_id = t.id
-      LEFT JOIN ticket_stats ts ON ts.ticket_id = t.id
+
+      LEFT JOIN users u
+        ON t.created_by = u.id
+
+      LEFT JOIN users a
+        ON t.assigned_to = a.id
+
+      LEFT JOIN categories c
+        ON t.category_id = c.id
+
+      LEFT JOIN locations l
+        ON t.location_id = l.id
+
+      LEFT JOIN attachments att
+        ON att.ticket_id = t.id
+        AND att.message_id IS NULL
+
+      LEFT JOIN ticket_stats ts
+        ON ts.ticket_id = t.id
     `;
 
     let query = "";
     let values = [];
 
     if (isAdmin) {
-      // admin boleh akses semua
       query = `${baseQuery} WHERE t.id = $1`;
       values = [id];
     } else {
-      // user hanya boleh akses miliknya
-      query = `${baseQuery} WHERE t.id = $1 AND t.created_by = $2`;
+      query = `
+        ${baseQuery}
+        WHERE t.id = $1
+        AND t.created_by = $2
+      `;
+
       values = [id, user.id];
     }
 
@@ -129,13 +147,16 @@ export async function GET(req, { params }) {
 
     /**
      * ===============================
-     * NOT FOUND / NO ACCESS
+     * NOT FOUND
      * ===============================
      */
     if (result.rowCount === 0) {
       return Response.json(
-        { success: false, message: "Ticket tidak ditemukan" },
-        { status: 404 }
+        {
+          success: false,
+          message: "Ticket tidak ditemukan",
+        },
+        { status: 404 },
       );
     }
 
@@ -143,26 +164,109 @@ export async function GET(req, { params }) {
 
     /**
      * ===============================
-     * GROUPING
+     * GET TICKET MESSAGES
+     * ===============================
+     */
+    const messageResult = await client.query(
+      `
+      SELECT
+        tm.id,
+        tm.ticket_id,
+        tm.sender_id,
+        tm.sender_role,
+        tm.message,
+        tm.created_at,
+
+        u.full_name as sender_name,
+
+        att.image_url
+
+      FROM ticket_messages tm
+
+      LEFT JOIN users u
+        ON tm.sender_id = u.id
+
+      LEFT JOIN attachments att
+        ON att.message_id = tm.id
+
+      WHERE tm.ticket_id = $1
+
+      ORDER BY tm.created_at ASC
+      `,
+      [id],
+    );
+
+    /**
+     * ===============================
+     * GROUPING MESSAGE IMAGES
+     * ===============================
+     */
+    const messageMap = {};
+
+    messageResult.rows.forEach((msg) => {
+      if (!messageMap[msg.id]) {
+        messageMap[msg.id] = {
+          id: msg.id,
+
+          sender_id: msg.sender_id,
+
+          sender_role: msg.sender_role,
+
+          sender_name: msg.sender_name,
+
+          message: msg.message,
+
+          created_at: msg.created_at,
+
+          created_at_human: formatTimeAgo(msg.created_at),
+
+          images: [],
+        };
+      }
+
+      if (msg.image_url) {
+        messageMap[msg.id].images.push(msg.image_url);
+      }
+    });
+
+    const messages = Object.values(messageMap);
+
+    /**
+     * ===============================
+     * GROUPING TICKET IMAGES
      * ===============================
      */
     const images = result.rows.map((r) => r.image_url).filter(Boolean);
 
+    /**
+     * ===============================
+     * RESPONSE
+     * ===============================
+     */
     const data = {
       id: row.id,
+
       ticket_code: row.ticket_code,
+
       ticket_title: row.ticket_title,
+
       ticket_description: row.ticket_description,
 
       status: row.status,
+
       priority: row.priority,
 
       created_at: row.created_at,
+
       created_at_human: formatTimeAgo(row.created_at),
 
       updated_at: row.updated_at,
 
       assigned_to: row.assigned_to,
+
+      last_reply_role: row.last_reply_role,
+
+      waiting_reply_from: row.waiting_reply_from,
 
       user: {
         id: row.user_id,
@@ -194,6 +298,8 @@ export async function GET(req, { params }) {
       last_message: row.last_message || null,
 
       images,
+
+      messages,
     };
 
     return Response.json({
@@ -209,7 +315,7 @@ export async function GET(req, { params }) {
         success: false,
         message: err.message || "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     client.release();

@@ -160,6 +160,7 @@ const LeftNavBar = ({
               width={100}
               height={60}
               priority
+              loading="eager"
             />
           </Box>
 
