@@ -38,7 +38,7 @@ const TicketMessageBubble = ({ message, isAdmin = false }) => {
 
           border: "1px solid",
 
-          borderColor: "rgba(0,0,0,0.06)",
+          borderColor: "rgba(0, 0, 0, 0.20)",
           //   borderColor: isAdmin ? "rgba(255,0,0,0.14)" : "rgba(0,0,0,0.06)",
 
           boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
@@ -99,9 +99,9 @@ const TicketMessageBubble = ({ message, isAdmin = false }) => {
           sx={{
             p: 1.5,
             mt: 2,
+            border: "1px solid rgba(0,0,0,0.20)",
             borderRadius: 2,
             backgroundColor: "#fafafa",
-            border: "1px solid #eee",
           }}
         >
           <FontStyle

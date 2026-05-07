@@ -2,7 +2,7 @@
 
 import FixedBottomActions from "@/app/components/drawer/FixedBottomActions";
 
-const TicketActions = ({ data, user, handleAccept }) => {
+const TicketActions = ({ data, user, handleAccept, setOpenModal }) => {
   return (
     <FixedBottomActions
       show={
@@ -15,7 +15,7 @@ const TicketActions = ({ data, user, handleAccept }) => {
           color: "error",
           variant: "outlined",
           onClick: () => {
-            alert("Tolak");
+            setOpenModal(true);
           },
         },
 

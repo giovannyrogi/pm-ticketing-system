@@ -24,6 +24,7 @@ import LoadingBackdrop from "../loading/Backdrop";
 import { redirect, usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import axios from "axios";
+import FontStyle from "../font-style/FontStyle";
 
 const LeftNavBar = ({
   menus,
@@ -117,7 +118,6 @@ const LeftNavBar = ({
     <Paper
       elevation={6}
       sx={{
-        p: 2,
         width: "100%",
         bgcolor: "background.default",
         height: "100%",
@@ -142,8 +142,9 @@ const LeftNavBar = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: "flex-start",
             gap: 1,
+            m: "7px 15px 0px 15px",
           }}
         >
           <Box
@@ -157,11 +158,19 @@ const LeftNavBar = ({
             <Image
               src={"/logo-pm-ticketing1.png"}
               alt="logo-pm-ticketing"
+              width={70}
+              height={40}
+              priority
+              loading="eager"
+            />
+            {/* <Image
+              src={"/logo-pm-ticketing1.png"}
+              alt="logo-pm-ticketing"
               width={100}
               height={60}
               priority
               loading="eager"
-            />
+            /> */}
           </Box>
 
           {/* Show app version */}
@@ -182,18 +191,24 @@ const LeftNavBar = ({
           </Box>
         </Box>
 
-        {/* LOGO */}
+        <Divider
+          sx={{
+            borderColor: "rgba(0, 0, 0, 0.24)",
+            mt: 1,
+            mb: 2,
+          }}
+        />
+
+        {/* Profile */}
         <Box
           sx={{
-            mt: 4,
-            mb: 2,
-            ml: "3px",
+            m: 2,
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-start",
             gap: 1.5,
             padding: 1,
-            border: "1px solid #eee",
+            border: `1px solid ${theme.palette.primary.main}`,
             borderRadius: "10px",
             bgcolor: alpha(theme.palette.primary.main, 0.12),
           }}
@@ -240,7 +255,7 @@ const LeftNavBar = ({
         </Box>
 
         {/* Main Menu */}
-        <List>
+        <List sx={{ m: 2 }}>
           {(menus || []).map((menu) =>
             menu.submenu ? (
               <React.Fragment key={menu.value}>

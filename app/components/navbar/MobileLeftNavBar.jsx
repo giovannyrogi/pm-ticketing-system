@@ -124,7 +124,6 @@ const MobileLeftNavBar = ({
     <Paper
       elevation={0}
       sx={{
-        p: 2,
         width: 260,
         // bgcolor: "background.default",
         minHeight: "100%",
@@ -141,15 +140,16 @@ const MobileLeftNavBar = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: "flex-start",
             gap: 1,
+            m: "7px 15px 0px 15px",
           }}
         >
           <Image
             src={"/logo-pm-ticketing1.png"}
             alt="logo-pm-ticketing"
-            width={100}
-            height={60}
+            width={70}
+            height={40}
             priority
             loading="eager"
           />
@@ -198,12 +198,18 @@ const MobileLeftNavBar = ({
           </Box>
         </Box>
 
+        <Divider
+          sx={{
+            borderColor: "rgba(0, 0, 0, 0.24)",
+            mt: 1,
+            mb: 2,
+          }}
+        />
+
         {/* Profile */}
         <Box
           sx={{
-            mt: 4,
-            mb: 2,
-            ml: "3px",
+            m: 2,
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-start",
@@ -262,7 +268,7 @@ const MobileLeftNavBar = ({
         </Box>
 
         {/* Main Menu */}
-        <List>
+        <List sx={{ m: 2 }}>
           {(menus || [])
             .filter((menu) => !menu.hidden)
             .map((menu) =>

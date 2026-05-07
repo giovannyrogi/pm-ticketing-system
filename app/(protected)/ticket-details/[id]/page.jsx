@@ -15,6 +15,9 @@ import TicketFooter from "@/app/components/tickets/TicketFooter";
 import TicketActions from "@/app/components/tickets/TicketActions";
 import TicketMessages from "@/app/components/tickets/TicketMessages";
 import TicketReplyForm from "@/app/components/tickets/TicketReplyForm";
+import RejectTicketModal from "./RejectTicketModal";
+import FontStyle from "@/app/components/font-style/FontStyle";
+import TicketRejectedInformation from "@/app/components/tickets/TicketRejectedInformation";
 
 const TicketDetail = () => {
   const { id } = useParams();
@@ -28,6 +31,7 @@ const TicketDetail = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [images, setImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
+  const [openModal, setOpenModal] = useState(false);
   const messagesEndRef = useRef(null);
 
   const [snackbar, setSnackbar] = useState({
@@ -275,14 +279,17 @@ const TicketDetail = () => {
   };
 
   return (
-    <Box>
+    <Box mb={10}>
+      {/* =========================
+        TICKET INFORMATION
+      ========================= */}
       <Paper
         elevation={0}
         sx={{
           p: { xs: 2, md: 2 },
           borderRadius: 3,
-          border: "1px solid #eee",
-          boxShadow: "0 6px 24px rgba(0,0,0,0.06)",
+          border: "1px solid rgba(0, 0, 0, 0.20)",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
         }}
       >
         <Grid container spacing={1}>
@@ -290,18 +297,22 @@ const TicketDetail = () => {
           <TicketInformation data={data} />
           <TicketDescription data={data} />
           <TicketAttachments data={data} isMobile={isMobile} />
-          <TicketFooter data={data} />
+          {/* <TicketFooter data={data} /> */}
         </Grid>
 
-        <TicketActions data={data} user={user} handleAccept={handleAccept} />
-
-        <Notification
-          open={snackbar.open}
-          message={snackbar.message}
-          severity={snackbar.severity}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        <TicketActions
+          data={data}
+          user={user}
+          handleAccept={handleAccept}
+          openModal={openModal}
+          setOpenModal={setOpenModal}
         />
       </Paper>
+
+      {/* =========================
+        REJECTED INFORMATION
+      ========================= */}
+      <TicketRejectedInformation data={data} />
 
       {/* =========================
         CHAT SECTION
@@ -313,7 +324,7 @@ const TicketDetail = () => {
             mt: 3,
             p: { xs: 2, md: 2 },
             borderRadius: 3,
-            border: "1px solid #eee",
+            border: "1px solid rgba(0, 0, 0, 0.20)",
             boxShadow: "0 6px 24px rgba(0,0,0,0.06)",
             overflow: "hidden",
           }}
@@ -344,6 +355,21 @@ const TicketDetail = () => {
         </Paper>
       )}
       <LoadingBackdrop message="Memproses Pesan..." open={sendingMessage} />
+      <RejectTicketModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        loading={loading}
+        setLoading={setLoading}
+        getDetail={getDetail}
+        data={data}
+        onNotify={(onNotify) => setSnackbar(onNotify)}
+      />
+      <Notification
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </Box>
   );
 };

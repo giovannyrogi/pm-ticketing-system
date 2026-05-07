@@ -218,9 +218,7 @@ const TicketList = () => {
       render: (_, data) => {
         const category = data.category?.name || "-";
 
-        return (
-          <StatusTag label={category} color={'blue'} />
-        );
+        return <StatusTag label={category} color={"blue"} />;
       },
       width: 160,
     },
@@ -270,9 +268,19 @@ const TicketList = () => {
       align: "center",
       render: (_, data) => {
         const adminName = data?.admin?.name;
+        const rejectedAdminName = data?.rejected_by_name;
+        const status = data?.status;
 
-        return adminName ? (
-          <StatusTag label={adminName} color={theme.palette.primary.main} />
+        return status === "ditolak" ? (
+          <StatusTag
+            label={rejectedAdminName}
+            color={theme.palette.primary.main}
+          />
+        ) : status === "selesai" || status === "proses" ? (
+          <StatusTag
+            label={adminName}
+            color={theme.palette.primary.main}
+          />
         ) : (
           <FontStyle fontWeight={"500"}>-</FontStyle>
         );

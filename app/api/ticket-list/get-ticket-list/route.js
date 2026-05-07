@@ -1,3 +1,4 @@
+import formatTimeAgo from "@/app/utils/formatTime";
 import pool from "@/lib/dbConfig";
 import moment from "moment";
 import { cookies } from "next/headers";
@@ -17,7 +18,7 @@ export async function GET() {
     if (!userCookie) {
       return Response.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -27,7 +28,7 @@ export async function GET() {
     } catch {
       return Response.json(
         { success: false, message: "Invalid session" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -35,7 +36,7 @@ export async function GET() {
     if (!["admin", "superadmin"].includes(user.role)) {
       return Response.json(
         { success: false, message: "Forbidden" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -56,6 +57,11 @@ export async function GET() {
         t.updated_at,
         t.assigned_to,
 
+        -- reject info
+        t.rejected_by,
+        t.rejected_at,
+        t.rejected_reason,
+
         -- user (pelapor)
         u.id as user_id,
         u.full_name as user_name,
@@ -63,6 +69,11 @@ export async function GET() {
         -- admin handler
         a.id as admin_id,
         a.full_name as admin_name,
+
+        -- rejected admin
+        ra.id as rejected_admin_id,
+        ra.full_name as rejected_admin_name,
+        ra.role as rejected_admin_role,
 
         -- category
         c.id as category_id,
@@ -82,6 +93,7 @@ export async function GET() {
       FROM tickets t
       LEFT JOIN users u ON t.created_by = u.id
       LEFT JOIN users a ON t.assigned_to = a.id
+      LEFT JOIN users ra ON t.rejected_by = ra.id
       LEFT JOIN categories c ON t.category_id = c.id
       LEFT JOIN locations l ON t.location_id = l.id
       LEFT JOIN attachments att ON att.ticket_id = t.id
@@ -131,6 +143,20 @@ export async function GET() {
               }
             : null,
 
+          rejected_by: row.rejected_by,
+
+          rejected_by_name: row.rejected_admin_name || null,
+
+          rejected_at: row.rejected_at,
+
+          rejected_by_role: row.rejected_admin_role || null,
+
+          rejected_at_human: row.rejected_at
+            ? formatTimeAgo(row.rejected_at)
+            : null,
+
+          rejected_reason: row.rejected_reason || null,
+
           // category
           category: {
             id: row.category_id,
@@ -176,7 +202,7 @@ export async function GET() {
         success: false,
         message: err.message || "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     client.release();

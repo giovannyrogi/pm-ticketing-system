@@ -29,7 +29,7 @@ const TicketDescription = ({ data }) => {
             p: 1.5,
             borderRadius: 2,
             backgroundColor: "#fafafa",
-            border: "1px solid #eee",
+            border: "1px solid rgba(0,0,0,0.20)",
           }}
         >
           <FontStyle

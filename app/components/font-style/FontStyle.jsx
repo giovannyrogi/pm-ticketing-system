@@ -18,6 +18,7 @@ const FontStyle = ({
         whiteSpace: "pre-line",
         wordBreak: "break-word",
         overflowWrap: "anywhere",
+        letterSpacing: "0.02em",
         color,
         ...sx, // Merge with custom styles
       }}

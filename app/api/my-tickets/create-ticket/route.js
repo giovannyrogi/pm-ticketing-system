@@ -111,6 +111,38 @@ export async function POST(req) {
 
     const MAX_SIZE = 3 * 1024 * 1024; // 3MB
 
+    /**
+     * =============================
+     * LIMIT ACTIVE TICKETS
+     * =============================
+     * User maksimal memiliki:
+     * - pending
+     * - proses
+     * sebanyak 3 ticket aktif
+     */
+    const activeTicketResult = await client.query(
+      `
+    SELECT COUNT(*)::int as total
+    FROM tickets
+    WHERE created_by = $1
+    AND status IN ('pending', 'proses')
+  `,
+      [user.id],
+    );
+
+    const totalActiveTickets = activeTicketResult.rows[0].total;
+
+    if (totalActiveTickets >= 3) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Maksimal hanya 3 tiket aktif. Selesaikan atau tunggu tiket diproses terlebih dahulu.",
+        },
+        { status: 400 },
+      );
+    }
+
     // =============================
     // START TRANSACTION
     // =============================
