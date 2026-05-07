@@ -63,6 +63,13 @@ const TicketDetail = () => {
 
   const canReply = data?.waiting_reply_from === user?.user?.role;
 
+  const shouldShowChatSection = ["proses", "selesai"].includes(data?.status);
+
+  const shouldShowReplyForm =
+    data?.status === "proses" &&
+    ((isAssignedAdmin && ["admin", "superadmin"].includes(user?.user?.role)) ||
+      (isTicketOwner && canReply));
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -404,14 +411,9 @@ const TicketDetail = () => {
       </Paper>
 
       {/* =========================
-        TICKET STATUS INFORMATION
-      ========================= */}
-      <TicketStatusInformation data={data} />
-
-      {/* =========================
         CHAT SECTION
       ========================= */}
-      {data?.status === "proses" && (
+      {shouldShowChatSection && (
         <Paper
           elevation={0}
           sx={{
@@ -427,9 +429,7 @@ const TicketDetail = () => {
           <>
             <TicketMessages messages={messages} user={user} />
 
-            {((isAssignedAdmin &&
-              ["admin", "superadmin"].includes(user?.user?.role)) ||
-              (isTicketOwner && canReply)) && (
+            {shouldShowReplyForm && (
               <TicketReplyForm
                 message={message}
                 setMessage={setMessage}
@@ -444,10 +444,17 @@ const TicketDetail = () => {
                 DESC_MAX={DESC_MAX}
               />
             )}
-            <Box ref={messagesEndRef} />
           </>
         </Paper>
       )}
+
+      {/* =========================
+        TICKET STATUS INFORMATION
+      ========================= */}
+      <TicketStatusInformation data={data} />
+
+      <Box ref={messagesEndRef} />
+
       <LoadingBackdrop message="Memproses Pesan..." open={sendingMessage} />
       <RejectTicketModal
         open={openModal}
