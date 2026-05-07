@@ -192,6 +192,22 @@ export async function POST(req) {
 
     /**
      * ===============================
+     * VALIDASI STATUS
+     * ===============================
+     */
+
+    if (ticket.status === "selesai") {
+      return Response.json(
+        {
+          success: false,
+          message: "Ticket sudah diselesaikan",
+        },
+        { status: 400 },
+      );
+    }
+
+    /**
+     * ===============================
      * START TRANSACTION
      * ===============================
      */

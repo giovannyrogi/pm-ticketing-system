@@ -2,7 +2,14 @@
 
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
 import Notification from "@/app/components/notification/Notification";
-import { Box, Grid, Paper, Typography, useMediaQuery } from "@mui/material";
+import {
+  Box,
+  Grid,
+  Paper,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -18,8 +25,11 @@ import TicketReplyForm from "@/app/components/tickets/TicketReplyForm";
 import RejectTicketModal from "./RejectTicketModal";
 import FontStyle from "@/app/components/font-style/FontStyle";
 import TicketRejectedInformation from "@/app/components/tickets/TicketRejectedInformation";
+import ActionConfirmationModal from "@/app/components/modal/ActionConfirmationModal";
+import TicketStatusInformation from "@/app/components/tickets/TicketStatusInformation";
 
 const TicketDetail = () => {
+  const theme = useTheme();
   const { id } = useParams();
   const user = useUser();
   const isMobile = useMediaQuery("(max-width: 600px)");
@@ -32,6 +42,8 @@ const TicketDetail = () => {
   const [images, setImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
   const [openModal, setOpenModal] = useState(false);
+  const [completeModalOpen, setCompleteModalOpen] = useState(false);
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
   const messagesEndRef = useRef(null);
 
   const [snackbar, setSnackbar] = useState({
@@ -278,6 +290,86 @@ const TicketDetail = () => {
     }
   };
 
+  const handleOpenCompleteModal = () => {
+    setCompleteModalOpen(true);
+  };
+
+  const handleOpenPublishModal = () => {
+    setPublishModalOpen(true);
+  };
+
+  const handleCompleteTicket = async () => {
+    try {
+      setSendingMessage(true);
+      const res = await axios.post("/api/tickets/complete-ticket", {
+        ticket_id: data.id,
+      });
+      if (res.data.success) {
+        setSnackbar({
+          open: true,
+          message: "Ticket berhasil diselesaikan",
+          severity: "success",
+        });
+        await getDetail();
+      } else {
+        setSnackbar({
+          open: true,
+          message: res?.data?.message || "Terjadi kesalahan",
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || "Terjadi kesalahan",
+        severity: "error",
+      });
+    } finally {
+      setTimeout(() => {
+        setSendingMessage(false);
+      }, 1000);
+    }
+  };
+
+  const handlePublishTicket = async () => {
+    try {
+      setSendingMessage(true);
+
+      const res = await axios.post("/api/tickets/publish-ticket", {
+        ticket_id: data.id,
+      });
+
+      if (res.data.success) {
+        setSnackbar({
+          open: true,
+          message: "Ticket berhasil dipublish",
+          severity: "success",
+        });
+
+        await getDetail();
+      } else {
+        setSnackbar({
+          open: true,
+          message: res?.data?.message || "Terjadi kesalahan",
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      console.log(err);
+
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || "Terjadi kesalahan",
+        severity: "error",
+      });
+    } finally {
+      setTimeout(() => {
+        setSendingMessage(false);
+      }, 1000);
+    }
+  };
+
   return (
     <Box mb={10}>
       {/* =========================
@@ -304,15 +396,17 @@ const TicketDetail = () => {
           data={data}
           user={user}
           handleAccept={handleAccept}
+          handleOpenCompleteModal={handleOpenCompleteModal}
+          handleOpenPublishModal={handleOpenPublishModal}
           openModal={openModal}
           setOpenModal={setOpenModal}
         />
       </Paper>
 
       {/* =========================
-        REJECTED INFORMATION
+        TICKET STATUS INFORMATION
       ========================= */}
-      <TicketRejectedInformation data={data} />
+      <TicketStatusInformation data={data} />
 
       {/* =========================
         CHAT SECTION
@@ -369,6 +463,37 @@ const TicketDetail = () => {
         message={snackbar.message}
         severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
+      <ActionConfirmationModal
+        open={completeModalOpen}
+        onClose={() => setCompleteModalOpen(false)}
+        title="Selesaikan Laporan?"
+        description="Laporan akan ditandai sebagai selesai dan percakapan pada tiket ini akan ditutup secara permanen untuk user maupun admin. Pastikan seluruh kendala telah ditangani dengan baik sebelum melanjutkan."
+        icon="material-symbols:task-alt-rounded"
+        color="success"
+        textColor={theme.palette.success.main}
+        confirmText="Ya, Selesaikan"
+        loading={sendingMessage}
+        onConfirm={async () => {
+          await handleCompleteTicket();
+          setCompleteModalOpen(false);
+        }}
+      />
+
+      <ActionConfirmationModal
+        open={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        title="Publish Laporan?"
+        description="Tiket akan dipublikasikan dan dapat dilihat oleh semua pengguna termasuk pengunjung tanpa akun."
+        icon="carbon:ibm-elo-publishing"
+        color="error"
+        textColor={theme.palette.error.main}
+        confirmText="Publish Sekarang"
+        loading={sendingMessage}
+        onConfirm={async () => {
+          await handlePublishTicket();
+          setPublishModalOpen(false);
+        }}
       />
     </Box>
   );

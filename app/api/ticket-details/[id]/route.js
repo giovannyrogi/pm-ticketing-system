@@ -72,6 +72,10 @@ export async function GET(req, { params }) {
         t.last_reply_role,
         t.waiting_reply_from,
         t.created_by,
+        t.is_public,
+        t.published_at,
+        t.completed_at,
+        t.completed_by,
 
         -- reject info
         t.rejected_by,
@@ -90,6 +94,10 @@ export async function GET(req, { params }) {
         ra.id as rejected_admin_id,
         ra.full_name as rejected_admin_name,
         ra.role as rejected_admin_role,
+
+        -- completed admin
+        ca.id as completed_admin_id,
+        ca.full_name as completed_admin_name,
 
         -- category
         c.id as category_id,
@@ -125,6 +133,9 @@ export async function GET(req, { params }) {
 
       LEFT JOIN users ra
         ON t.rejected_by = ra.id
+
+      LEFT JOIN users ca
+        ON t.completed_by = ca.id
 
       LEFT JOIN categories c
         ON t.category_id = c.id
@@ -280,6 +291,24 @@ export async function GET(req, { params }) {
       last_reply_role: row.last_reply_role,
 
       waiting_reply_from: row.waiting_reply_from,
+
+      is_public: row.is_public,
+
+      published_at: row.published_at,
+
+      published_at_human: row.published_at
+        ? formatTimeAgo(row.published_at)
+        : null,
+
+      completed_at: row.completed_at,
+
+      completed_at_human: row.completed_at
+        ? formatTimeAgo(row.completed_at)
+        : null,
+
+      completed_by: row.completed_by,
+
+      completed_by_name: row.completed_admin_name || null,
 
       user: {
         id: row.user_id,
