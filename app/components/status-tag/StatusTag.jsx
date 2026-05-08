@@ -43,6 +43,7 @@ const StatusTag = ({
   color,
   variant = "outlined",
   useRandom = false,
+  fontSize = 12,
 }) => {
   /**
    * PRIORITY WARNA:
@@ -60,11 +61,12 @@ const StatusTag = ({
       color={finalColor}
       variant={variant}
       style={{
-        fontSize: 12,
+        fontSize: fontSize,
         fontWeight: "bold",
         textTransform: "capitalize",
         borderRadius: 6,
         padding: "2px 8px",
+        letterSpacing: 0.5,
       }}
     >
       {label}
