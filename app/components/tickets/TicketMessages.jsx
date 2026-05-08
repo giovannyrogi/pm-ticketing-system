@@ -32,7 +32,9 @@ const TicketMessages = ({ messages = [], user }) => {
           <TicketMessageBubble
             key={msg.id}
             message={msg}
-            isAdmin={msg?.sender_role === "admin"}
+            isAdmin={["admin", "superadmin", "staff"].includes(
+              msg?.sender_role,
+            )}
           />
         ))
       )}

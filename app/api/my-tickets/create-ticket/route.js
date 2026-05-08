@@ -16,6 +16,7 @@ if (!fs.existsSync(uploadDir)) {
 export async function POST(req) {
   const cookieStore = await cookies();
   const userCookie = cookieStore.get("dataUser");
+  const writtenFiles = [];
 
   // =============================
   // AUTH
@@ -111,6 +112,15 @@ export async function POST(req) {
 
     const MAX_SIZE = 3 * 1024 * 1024; // 3MB
 
+    // =============================
+    // START TRANSACTION
+    // =============================
+    await client.query("BEGIN");
+
+    await client.query("SELECT pg_advisory_xact_lock($1::bigint)", [
+      Number(user.id),
+    ]);
+
     /**
      * =============================
      * LIMIT ACTIVE TICKETS
@@ -133,6 +143,8 @@ export async function POST(req) {
     const totalActiveTickets = activeTicketResult.rows[0].total;
 
     if (totalActiveTickets >= 3) {
+      await client.query("ROLLBACK");
+
       return Response.json(
         {
           success: false,
@@ -142,11 +154,6 @@ export async function POST(req) {
         { status: 400 },
       );
     }
-
-    // =============================
-    // START TRANSACTION
-    // =============================
-    await client.query("BEGIN");
 
     // generate ticket code dulu
     const ticketCode = await generateUniqueTicketCode(client);
@@ -217,7 +224,7 @@ export async function POST(req) {
         ticket_description,
         category_id,
         "user",
-        "admin",
+        "staff",
       ],
     );
 
@@ -262,16 +269,17 @@ export async function POST(req) {
     );
 
     // =============================
-    // COMMIT
-    // =============================
-    await client.query("COMMIT");
-
-    // =============================
-    // SAVE FILE AFTER COMMIT
+    // SAVE FILE BEFORE COMMIT
     // =============================
     for (const file of savedFiles) {
       await fs.promises.writeFile(file.filepath, file.buffer);
+      writtenFiles.push(file.filepath);
     }
+
+    // =============================
+    // COMMIT
+    // =============================
+    await client.query("COMMIT");
 
     // =============================
     // RESPONSE
@@ -286,6 +294,12 @@ export async function POST(req) {
     });
   } catch (err) {
     await client.query("ROLLBACK");
+
+    for (const filepath of writtenFiles) {
+      try {
+        await fs.promises.unlink(filepath);
+      } catch {}
+    }
 
     console.error("ERROR CREATE TICKET:", err);
 

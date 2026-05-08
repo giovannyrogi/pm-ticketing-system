@@ -157,10 +157,24 @@ export async function POST(req) {
           assigned_to = $1,
           updated_at = NOW()
         WHERE id = $2
+        AND status = 'pending'
+        AND assigned_to IS NULL
         RETURNING *
       `,
       [user.id, ticketId]
     );
+
+    if (updateResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+
+      return Response.json(
+        {
+          success: false,
+          message: "Ticket sudah diproses admin lain",
+        },
+        { status: 400 }
+      );
+    }
 
     /**
      * ===============================

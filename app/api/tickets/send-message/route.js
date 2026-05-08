@@ -5,8 +5,21 @@ import path from "path";
 import moment from "moment";
 import sanitizeFileName from "@/app/utils/sanitizeFileName";
 
+const getReplySide = (role) =>
+  ["admin", "superadmin"].includes(role) ? "staff" : role;
+
+const canReplyToSide = (waitingReplyFrom, role) => {
+  const replySide = getReplySide(role);
+
+  return (
+    waitingReplyFrom === replySide ||
+    (waitingReplyFrom === "admin" && replySide === "staff")
+  );
+};
+
 export async function POST(req) {
   const client = await pool.connect();
+  const writtenFiles = [];
 
   try {
     /**
@@ -136,13 +149,17 @@ export async function POST(req) {
     }
 
     const ticket = ticketResult.rows[0];
+    const userReplySide = getReplySide(user.role);
 
     /**
      * ===============================
      * FLOW VALIDATION
      * ===============================
      */
-    if (ticket.waiting_reply_from && ticket.waiting_reply_from !== user.role) {
+    if (
+      ticket.waiting_reply_from &&
+      !canReplyToSide(ticket.waiting_reply_from, user.role)
+    ) {
       return Response.json(
         {
           success: false,
@@ -257,7 +274,11 @@ export async function POST(req) {
           updated_at = NOW()
         WHERE id = $3
       `,
-      [user.role, user.role === "user" ? "admin" : "user", ticketId],
+      [
+        userReplySide,
+        userReplySide === "user" ? "staff" : "user",
+        ticketId,
+      ],
     );
 
     /**
@@ -379,6 +400,7 @@ export async function POST(req) {
        */
       for (const file of savedFiles) {
         await fs.promises.writeFile(file.filepath, file.buffer);
+        writtenFiles.push(file.filepath);
       }
     }
 
@@ -412,6 +434,12 @@ export async function POST(req) {
     });
   } catch (err) {
     await client.query("ROLLBACK");
+
+    for (const filepath of writtenFiles) {
+      try {
+        await fs.promises.unlink(filepath);
+      } catch {}
+    }
 
     console.error("ERROR SEND MESSAGE:", err);
 

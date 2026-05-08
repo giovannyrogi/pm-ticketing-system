@@ -175,10 +175,25 @@ export async function POST(req) {
           published_at = NOW(),
           updated_at = NOW()
         WHERE id = $1
+        AND status = 'selesai'
+        AND assigned_to = $2
+        AND is_public = FALSE
         RETURNING *
       `,
-      [ticketId]
+      [ticketId, user.id]
     );
+
+    if (updateResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+
+      return Response.json(
+        {
+          success: false,
+          message: "Ticket tidak bisa dipublish",
+        },
+        { status: 400 }
+      );
+    }
 
     /**
      * ===============================

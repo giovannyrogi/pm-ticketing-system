@@ -162,10 +162,24 @@ export async function POST(req) {
           updated_at = NOW(),
           closed_at = NOW()
         WHERE id = $1
+        AND status = 'proses'
+        AND assigned_to = $2
         RETURNING *
       `,
       [ticketId, user.id]
     );
+
+    if (updateResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+
+      return Response.json(
+        {
+          success: false,
+          message: "Ticket tidak dapat diselesaikan",
+        },
+        { status: 400 }
+      );
+    }
 
     /**
      * ===============================

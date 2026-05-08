@@ -183,10 +183,24 @@ export async function POST(req) {
           rejected_reason = $2,
           updated_at = NOW()
         WHERE id = $3
+        AND status = 'pending'
+        AND assigned_to IS NULL
         RETURNING *
       `,
       [user.id, rejectedReason, ticketId],
     );
+
+    if (updateResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+
+      return Response.json(
+        {
+          success: false,
+          message: "Ticket sudah diproses admin lain",
+        },
+        { status: 400 },
+      );
+    }
 
     /**
      * ===============================

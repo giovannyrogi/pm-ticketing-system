@@ -55,20 +55,37 @@ const TicketDetail = () => {
   const MAX_SIZE = 3 * 1024 * 1024; // gambar maks 3MB
   const DESC_MAX = 500;
 
+  const getReplySide = (role) =>
+    ["admin", "superadmin"].includes(role) ? "staff" : role;
+
+  const canReplyToSide = (waitingReplyFrom, role) => {
+    const replySide = getReplySide(role);
+
+    return (
+      waitingReplyFrom === replySide ||
+      (waitingReplyFrom === "admin" && replySide === "staff")
+    );
+  };
+
   const isAssignedAdmin =
     ["admin", "superadmin"].includes(user?.user?.role) &&
     user?.user?.id === data?.admin?.id;
 
   const isTicketOwner = Number(user?.user?.id) === Number(data?.user?.id);
 
-  const canReply = data?.waiting_reply_from === user?.user?.role;
+  const canReply = canReplyToSide(
+    data?.waiting_reply_from,
+    user?.user?.role,
+  );
 
   const shouldShowChatSection = ["proses", "selesai"].includes(data?.status);
 
   const shouldShowReplyForm =
     data?.status === "proses" &&
-    ((isAssignedAdmin && ["admin", "superadmin"].includes(user?.user?.role)) ||
-      (isTicketOwner && canReply));
+    (((isAssignedAdmin &&
+      ["admin", "superadmin"].includes(user?.user?.role)) ||
+      isTicketOwner) &&
+      canReply);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
