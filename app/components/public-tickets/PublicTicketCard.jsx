@@ -32,8 +32,6 @@ const PublicTicketCard = ({ ticket }) => {
     setLiked((prev) => !prev);
   };
 
-  console.log("ticket", ticket);
-
   return (
     <Box
       sx={{

@@ -6,7 +6,7 @@ import { ROUTE_ACCESS } from "./app/components/menu/routeAccess";
  * PUBLIC & AUTH ROUTES
  * ===============================
  */
-const PUBLIC_ROUTES = ["/"];
+
 const AUTH_ROUTES = ["/login", "/register"];
 
 /**
@@ -20,8 +20,7 @@ const getMatchedRoute = (pathname) => {
   );
 
   return sorted.find((route) => {
-    if (route.path === "/") return pathname === "/";
-    return pathname.startsWith(route.path);
+    return pathname === route.path || pathname.startsWith(`${route.path}/`);
   });
 };
 
@@ -64,7 +63,21 @@ export function middleware(request) {
    * ===============================
    */
   if (!isLoggedIn) {
-    if (!PUBLIC_ROUTES.includes(pathname) && !AUTH_ROUTES.includes(pathname)) {
+    const isAuthRoute = AUTH_ROUTES.includes(pathname);
+
+    /**
+     * ===============================
+     * CHECK PROTECTED ROUTE
+     * ===============================
+     */
+    const matchedRoute = getMatchedRoute(pathname);
+
+    /**
+     * ===============================
+     * ONLY PROTECT REGISTERED ROUTES
+     * ===============================
+     */
+    if (matchedRoute && !isAuthRoute) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }

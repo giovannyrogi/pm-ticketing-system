@@ -64,6 +64,7 @@ const StatusTag = ({
         fontSize: fontSize,
         fontWeight: "bold",
         textTransform: "capitalize",
+        fontFamily: "Poppins, sans-serif",
         borderRadius: 6,
         padding: "2px 8px",
         letterSpacing: 0.5,

@@ -68,6 +68,8 @@ const Home = () => {
 
         const res = await axios.get(`/api/public/tickets/ticket-list?${query}`);
 
+        console.log("res", res);
+
         if (res.data.success) {
           setTickets(res.data.data || []);
           setCategories(res.data.filters?.categories || []);

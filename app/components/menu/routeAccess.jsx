@@ -1,11 +1,11 @@
 export const ROUTE_ACCESS = [
   {
-    path: "/",
-    roles: ["user", "admin", "superadmin"],
-  },
-  {
     path: "/ticket-list",
     roles: ["admin", "superadmin"],
+  },
+  {
+    path: "/ticket-details",
+    roles: ["admin", "superadmin", "user"],
   },
   {
     path: "/my-tickets",

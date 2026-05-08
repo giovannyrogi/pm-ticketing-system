@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import axios from "axios";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/app/utils/useUser";
 import TicketHeader from "@/app/components/tickets/TicketHeader";
@@ -31,6 +31,7 @@ import TicketStatusInformation from "@/app/components/tickets/TicketStatusInform
 const TicketDetail = () => {
   const theme = useTheme();
   const { id } = useParams();
+  const router = useRouter();
   const user = useUser();
   const isMobile = useMediaQuery("(max-width: 600px)");
   const [data, setData] = useState(null);
@@ -73,19 +74,15 @@ const TicketDetail = () => {
 
   const isTicketOwner = Number(user?.user?.id) === Number(data?.user?.id);
 
-  const canReply = canReplyToSide(
-    data?.waiting_reply_from,
-    user?.user?.role,
-  );
+  const canReply = canReplyToSide(data?.waiting_reply_from, user?.user?.role);
 
   const shouldShowChatSection = ["proses", "selesai"].includes(data?.status);
 
   const shouldShowReplyForm =
     data?.status === "proses" &&
-    (((isAssignedAdmin &&
-      ["admin", "superadmin"].includes(user?.user?.role)) ||
+    ((isAssignedAdmin && ["admin", "superadmin"].includes(user?.user?.role)) ||
       isTicketOwner) &&
-      canReply);
+    canReply;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
@@ -117,8 +114,70 @@ const TicketDetail = () => {
     } catch (err) {
       console.log("ERROR:", err);
 
+      const status = err?.response?.status;
+
+      /**
+       * ===============================
+       * UNAUTHORIZED
+       * ===============================
+       */
+      if (status === 401) {
+        router.replace("/login");
+        return;
+      }
+
+      /**
+       * ===============================
+       * FORBIDDEN / NOT FOUND
+       * ===============================
+       */
+      if (status === 403 || status === 404) {
+        /**
+         * ===============================
+         * GET ROLE FROM COOKIE
+         * ===============================
+         */
+        let role = null;
+
+        try {
+          const cookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("dataUser="));
+
+          if (cookie) {
+            const parsed = JSON.parse(decodeURIComponent(cookie.split("=")[1]));
+
+            role = parsed?.role;
+          }
+        } catch (e) {
+          console.log("COOKIE PARSE ERROR:", e);
+        }
+
+        /**
+         * ===============================
+         * REDIRECT BASED ROLE
+         * ===============================
+         */
+        if (role === "user") {
+          router.replace("/my-tickets");
+          return;
+        }
+
+        // if (["admin", "superadmin"].includes(role)) {
+        //   router.replace("/ticket-list");
+        //   return;
+        // }
+
+        /**
+         * FALLBACK
+         */
+        router.replace("/");
+        return;
+      }
+
       setTimeout(() => {
         setData(null);
+
         if (showLoading) {
           setLoading(false);
           setInitialized(true);
