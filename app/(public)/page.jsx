@@ -18,6 +18,7 @@ import {
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import FontStyle from "../components/font-style/FontStyle";
+import LoadingBackdrop from "../components/loading/Backdrop";
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Terbaru dipublish" },
@@ -84,7 +85,9 @@ const Home = () => {
           err?.response?.data?.message || "Gagal mengambil tiket publik",
         );
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
       }
     };
 
@@ -228,18 +231,16 @@ const Home = () => {
       <Stack spacing={1.5}>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        {loading ? (
-          <Box
-            sx={{
-              py: 8,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        ) : tickets.length === 0 ? (
+        {loading ? //   sx={{ // <Box
+        //     py: 8,
+        //     display: "flex",
+        //     alignItems: "center",
+        //     justifyContent: "center",
+        //   }}
+        // >
+        //   <CircularProgress />
+        // </Box>
+        undefined : tickets.length === 0 ? (
           <Paper
             elevation={0}
             sx={{
@@ -277,6 +278,7 @@ const Home = () => {
           ))
         )}
       </Stack>
+      <LoadingBackdrop open={loading} message="Memuat data..." />
     </Box>
   );
 };

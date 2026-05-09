@@ -14,6 +14,7 @@ import {
   Paper,
   useMediaQuery,
   Button,
+  ButtonBase,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -211,7 +212,7 @@ const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
                 fontFamily: "poppins",
               }}
             >
-              Login / Register
+              Buat Laporan
             </Button>
           </Box>
         </Box>

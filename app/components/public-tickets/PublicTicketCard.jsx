@@ -25,12 +25,6 @@ import { Icon } from "@iconify/react";
 const PublicTicketCard = ({ ticket }) => {
   const theme = useTheme();
   const router = useRouter();
-  const [liked, setLiked] = useState(false);
-
-  const handleLike = (e) => {
-    e.stopPropagation();
-    setLiked((prev) => !prev);
-  };
 
   return (
     <Box
@@ -68,6 +62,10 @@ const PublicTicketCard = ({ ticket }) => {
                 fontSize: 14,
                 lineHeight: 1.45,
                 color: "text.disabled",
+                //on hover
+                "&:hover": {
+                  color: "primary.main",
+                },
               }}
             >
               {ticket.ticket_title}
@@ -139,78 +137,76 @@ const PublicTicketCard = ({ ticket }) => {
         </Grid>
 
         <Divider />
+      </ButtonBase>
 
-        <Box
-          sx={{
-            px: { xs: 2, md: 2.25 },
-            py: 1.25,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 1.5,
-            flexWrap: "wrap",
-          }}
-        >
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <VisibilityOutlinedIcon sx={{ fontSize: 16 }} />
-              <FontStyle
-                sx={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "text.disabled",
-                }}
-              >
-                {ticket.stats?.views || 0}
-              </FontStyle>
-            </Stack>
-
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              {liked ? (
-                <FavoriteIcon sx={{ fontSize: 16, color: "error.main" }} />
-              ) : (
-                <FavoriteBorderIcon
-                  sx={{ fontSize: 16, color: "error.main" }}
-                />
-              )}
-              <FontStyle
-                sx={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "text.disabled",
-                }}
-              >
-                {(ticket.stats?.likes || 0) + (liked ? 1 : 0)}
-              </FontStyle>
-            </Stack>
-          </Stack>
-
-          <Stack
-            direction="row"
-            spacing={0.7}
-            alignItems="center"
-            sx={{ minWidth: 0 }}
-          >
-            {/* <CalendarMonthOutlinedIcon
-              sx={{ fontSize: 16, color: "text.disabled" }}
-            /> */}
-            <Icon
-              icon={"mingcute:time-line"}
-              style={{ fontSize: 16, color: theme.palette.text.disabled }}
-            />
+      <Box
+        sx={{
+          px: { xs: 2, md: 2.25 },
+          py: 1.25,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1.5,
+          flexWrap: "wrap",
+        }}
+      >
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <VisibilityOutlinedIcon sx={{ fontSize: 16 }} />
             <FontStyle
               sx={{
                 fontSize: 12,
                 fontWeight: 500,
                 color: "text.disabled",
-                textAlign: "right",
               }}
             >
-              {ticket.published_at_human || "-"} • {ticket.user?.name || "-"}
+              {ticket.stats?.views || 0}
             </FontStyle>
           </Stack>
-        </Box>
-      </ButtonBase>
+
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            {ticket.stats?.likes > 0 ? (
+              <FavoriteIcon sx={{ fontSize: 16, color: "error.main" }} />
+            ) : (
+              <FavoriteBorderIcon sx={{ fontSize: 16, color: "error.main" }} />
+            )}
+            <FontStyle
+              sx={{
+                fontSize: 12,
+                fontWeight: 500,
+                color: "text.disabled",
+              }}
+            >
+              {ticket.stats?.likes || 0}
+            </FontStyle>
+          </Stack>
+        </Stack>
+
+        <Stack
+          direction="row"
+          spacing={0.7}
+          alignItems="center"
+          sx={{ minWidth: 0 }}
+        >
+          {/* <CalendarMonthOutlinedIcon
+              sx={{ fontSize: 16, color: "text.disabled" }}
+            /> */}
+          <Icon
+            icon={"mingcute:time-line"}
+            style={{ fontSize: 16, color: theme.palette.text.disabled }}
+          />
+          <FontStyle
+            sx={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: "text.disabled",
+              textAlign: "right",
+            }}
+          >
+            {ticket.published_at_human || "-"} • {ticket.user?.name || "-"}
+          </FontStyle>
+        </Stack>
+      </Box>
     </Box>
   );
 };

@@ -1,5 +1,6 @@
 import formatTimeAgo from "@/app/utils/formatTime";
 import pool from "@/lib/dbConfig";
+import { cookies } from "next/headers";
 
 export async function GET(req, { params }) {
   const client = await pool.connect();
@@ -97,25 +98,6 @@ export async function GET(req, { params }) {
       );
     }
 
-    await client.query(
-      `
-        INSERT INTO ticket_views (ticket_id, user_id, viewed_at)
-        VALUES ($1, NULL, NOW())
-      `,
-      [id],
-    );
-
-    await client.query(
-      `
-        UPDATE ticket_stats
-        SET
-          views_count = views_count + 1,
-          updated_at = NOW()
-        WHERE ticket_id = $1
-      `,
-      [id],
-    );
-
     const row = result.rows[0];
 
     const messageResult = await client.query(
@@ -170,6 +152,47 @@ export async function GET(req, { params }) {
       }
     });
 
+    /**
+     * ===============================
+     * GET USER
+     * ===============================
+     */
+    const cookieStore = await cookies();
+
+    const userCookie = cookieStore.get("dataUser");
+
+    let currentUserId = null;
+
+    if (userCookie) {
+      try {
+        const user = JSON.parse(userCookie.value);
+
+        currentUserId = user.id;
+      } catch {}
+    }
+
+    /**
+     * ===============================
+     * CHECK USER LIKE
+     * ===============================
+     */
+    let isLiked = false;
+
+    if (currentUserId) {
+      const likeResult = await client.query(
+        `
+      SELECT id
+      FROM ticket_likes
+      WHERE ticket_id = $1
+      AND user_id = $2
+      LIMIT 1
+    `,
+        [id, currentUserId],
+      );
+
+      isLiked = likeResult.rowCount > 0;
+    }
+
     const data = {
       id: row.id,
       ticket_code: row.ticket_code,
@@ -211,8 +234,9 @@ export async function GET(req, { params }) {
         name: row.location_name,
       },
       stats: {
-        views: (row.views_count || 0) + 1,
+        views: row.views_count || 0,
         likes: row.likes_count || 0,
+        liked: isLiked,
       },
       images: result.rows.map((r) => r.image_url).filter(Boolean),
       messages: Object.values(messageMap),

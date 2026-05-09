@@ -1,5 +1,6 @@
 "use client";
 
+import FontStyle from "@/app/components/font-style/FontStyle";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
 import PublicLikeButton from "@/app/components/public-tickets/PublicLikeButton";
 import TicketAttachments from "@/app/components/tickets/TicketAttachments";
@@ -17,14 +18,14 @@ import {
   Grid,
   Paper,
   Stack,
-  Typography,
   useMediaQuery,
 } from "@mui/material";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const PublicTicketDetail = () => {
+  const hasTrackedView = useRef(false);
   const { id } = useParams();
   const router = useRouter();
   const isMobile = useMediaQuery("(max-width: 600px)");
@@ -62,6 +63,49 @@ const PublicTicketDetail = () => {
     }
   }, [id]);
 
+  useEffect(() => {
+    const incrementView = async () => {
+      try {
+        /**
+         * ===============================
+         * PREVENT DOUBLE EXECUTION
+         * ===============================
+         */
+        if (hasTrackedView.current) return;
+
+        /**
+         * ===============================
+         * SESSION KEY
+         * ===============================
+         */
+        const storageKey = `public-ticket-view-${id}`;
+
+        /**
+         * ===============================
+         * PREVENT MULTIPLE VIEW
+         * ===============================
+         */
+        if (sessionStorage.getItem(storageKey)) {
+          return;
+        }
+
+        hasTrackedView.current = true;
+
+        await axios.post("/api/public/tickets/add-view", {
+          ticket_id: id,
+        });
+
+        sessionStorage.setItem(storageKey, "true");
+      } catch (err) {
+        console.log("ERROR ADD VIEW:", err);
+      }
+    };
+
+    if (id) {
+      incrementView();
+    }
+  }, [id]);
+
   if (loading) {
     return <LoadingBackdrop message="Loading ticket..." open />;
   }
@@ -75,14 +119,43 @@ const PublicTicketDetail = () => {
         pb: 8,
       }}
     >
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        alignItems={{ xs: "stretch", sm: "center" }}
-        justifyContent="space-between"
-        spacing={1.5}
-        sx={{ mb: 2 }}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          mb: 2,
+          gap: 1.5,
+        }}
       >
-        <Button
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+          }}
+        >
+          <VisibilityOutlinedIcon sx={{ fontSize: 20 }} />
+          <FontStyle
+            sx={{
+              fontSize: 12,
+              fontWeight: "500",
+            }}
+          >
+            {data.stats?.views || 0} Views
+          </FontStyle>
+        </Box>
+        {data && (
+          <PublicLikeButton
+            ticketId={data.id}
+            initialLikes={data.stats?.likes || 0}
+            initialLiked={data.stats?.liked || false}
+            isLoggedIn={Boolean(document.cookie.includes("dataUser"))}
+          />
+        )}
+      </Box>
+
+      {/* <Button
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           onClick={() => router.push("/")}
@@ -95,21 +168,7 @@ const PublicTicketDetail = () => {
           }}
         >
           Kembali ke Beranda
-        </Button>
-
-        {data && (
-          <Stack direction="row" spacing={1.25} alignItems="center">
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <VisibilityOutlinedIcon sx={{ fontSize: 19 }} />
-              <Typography sx={metaTextSx}>
-                {data.stats?.views || 0} Views
-              </Typography>
-            </Stack>
-
-            <PublicLikeButton initialLikes={data.stats?.likes || 0} />
-          </Stack>
-        )}
-      </Stack>
+        </Button> */}
 
       {errorMessage && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -127,16 +186,16 @@ const PublicTicketDetail = () => {
             textAlign: "center",
           }}
         >
-          <Typography
+          <FontStyle
             sx={{
               fontFamily: "Poppins, sans-serif",
-              fontWeight: 800,
-              fontSize: 16,
-              letterSpacing: 0,
+              fontWeight: 600,
+              fontSize: 14,
+              color: "text.disabled",
             }}
           >
             Ticket publik tidak ditemukan
-          </Typography>
+          </FontStyle>
         </Paper>
       ) : (
         <>
@@ -176,14 +235,6 @@ const PublicTicketDetail = () => {
       )}
     </Box>
   );
-};
-
-const metaTextSx = {
-  fontFamily: "Poppins, sans-serif",
-  fontSize: 13,
-  fontWeight: 700,
-  color: "text.secondary",
-  letterSpacing: 0,
 };
 
 export default PublicTicketDetail;
