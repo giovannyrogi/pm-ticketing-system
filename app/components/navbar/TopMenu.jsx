@@ -187,7 +187,18 @@ const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
             width: "100%",
           }}
         >
-          <Box>
+          <Box
+            onClick={() => {
+              onShowLoading?.();
+              setTimeout(() => {
+                router.push("/");
+                onHideLoading?.();
+              }, 1000);
+            }}
+            sx={{
+              cursor: "pointer",
+            }}
+          >
             <Image
               src={"/logo-pm-ticketing1.png"}
               alt="logo-pdpasar"

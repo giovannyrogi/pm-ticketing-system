@@ -76,6 +76,10 @@ export async function GET(req, { params }) {
         t.published_at,
         t.completed_at,
         t.completed_by,
+        t.rating_value,
+        t.rating_comment,
+        t.rated_by,
+        t.rated_at,
 
         -- reject info
         t.rejected_by,
@@ -291,6 +295,14 @@ export async function GET(req, { params }) {
       last_reply_role: row.last_reply_role,
 
       waiting_reply_from: row.waiting_reply_from,
+
+      rating_value: row.rating_value,
+
+      rating_comment: row.rating_comment,
+
+      rated_by: row.rated_by,
+
+      rated_at_human: row.rated_at ? formatTimeAgo(row.rated_at) : null,
 
       is_public: row.is_public,
 

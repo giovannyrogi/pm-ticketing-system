@@ -40,10 +40,10 @@ export async function POST(req) {
 
     /**
      * ===============================
-     * ROLE VALIDATION
+     * ONLY USER ROLE
      * ===============================
      */
-    if (!["admin", "superadmin"].includes(user.role)) {
+    if (user.role !== "user") {
       return Response.json(
         {
           success: false,
@@ -60,18 +60,57 @@ export async function POST(req) {
      */
     const body = await req.json();
 
-    const ticketId = body.ticket_id;
+    const ticketId = Number(body.ticket_id);
+
+    const ratingValue = Number(body.rating_value);
+
+    const ratingComment = body.rating_comment?.trim() || null;
 
     /**
      * ===============================
      * VALIDATION
      * ===============================
      */
-    if (!ticketId || isNaN(Number(ticketId))) {
+    if (!ticketId || isNaN(ticketId)) {
       return Response.json(
         {
           success: false,
           message: "ID ticket tidak valid",
+        },
+        { status: 400 },
+      );
+    }
+
+    /**
+     * ===============================
+     * VALIDATE RATING
+     * ===============================
+     */
+    if (
+      !ratingValue ||
+      isNaN(ratingValue) ||
+      ratingValue < 1 ||
+      ratingValue > 5
+    ) {
+      return Response.json(
+        {
+          success: false,
+          message: "Rating harus antara 1 sampai 5",
+        },
+        { status: 400 },
+      );
+    }
+
+    /**
+     * ===============================
+     * COMMENT LIMIT
+     * ===============================
+     */
+    if (ratingComment && ratingComment.length > 500) {
+      return Response.json(
+        {
+          success: false,
+          message: "Ulasan maksimal 500 karakter",
         },
         { status: 400 },
       );
@@ -86,10 +125,9 @@ export async function POST(req) {
       `
         SELECT
           id,
-          ticket_code,
+          created_by,
           status,
-          assigned_to,
-          is_public
+          rating_value
         FROM tickets
         WHERE id = $1
         LIMIT 1
@@ -111,10 +149,10 @@ export async function POST(req) {
 
     /**
      * ===============================
-     * VALIDASI ASSIGNED ADMIN
+     * OWNER VALIDATION
      * ===============================
      */
-    if (Number(ticket.assigned_to) !== Number(user.id)) {
+    if (Number(ticket.created_by) !== Number(user.id)) {
       return Response.json(
         {
           success: false,
@@ -126,14 +164,14 @@ export async function POST(req) {
 
     /**
      * ===============================
-     * VALIDASI STATUS
+     * STATUS VALIDATION
      * ===============================
      */
-    if (ticket.status !== "proses") {
+    if (ticket.status !== "selesai") {
       return Response.json(
         {
           success: false,
-          message: "Ticket tidak dapat diselesaikan",
+          message: "Ticket belum selesai",
         },
         { status: 400 },
       );
@@ -141,25 +179,14 @@ export async function POST(req) {
 
     /**
      * ===============================
-     * IF TICKET DOESN'T HAVE MESSAGE, RETURN ERROR
+     * ALREADY RATED
      * ===============================
      */
-
-    const messageResult = await client.query(
-      `
-        SELECT id
-        FROM ticket_messages
-        WHERE ticket_id = $1
-        LIMIT 1
-      `,
-      [ticketId],
-    );
-
-    if (messageResult.rowCount === 0) {
+    if (ticket.rating_value) {
       return Response.json(
         {
           success: false,
-          message: "Tiket belum memiliki history percakapan",
+          message: "Ticket sudah diberi penilaian",
         },
         { status: 400 },
       );
@@ -181,31 +208,21 @@ export async function POST(req) {
       `
         UPDATE tickets
         SET
-          status = 'selesai',
-          waiting_reply_from = NULL,
-          completed_at = NOW(),
-          completed_by = $2,
-          updated_at = NOW(),
-          closed_at = NOW()
-        WHERE id = $1
-        AND status = 'proses'
-        AND assigned_to = $2
+          rating_value = $1,
+          rating_comment = $2,
+          rated_by = $3,
+          rated_at = NOW(),
+          updated_at = NOW()
+        WHERE id = $4
         RETURNING *
       `,
-      [ticketId, user.id],
+      [
+        ratingValue,
+        ratingComment,
+        user.id,
+        ticketId,
+      ],
     );
-
-    if (updateResult.rowCount === 0) {
-      await client.query("ROLLBACK");
-
-      return Response.json(
-        {
-          success: false,
-          message: "Ticket tidak dapat diselesaikan",
-        },
-        { status: 400 },
-      );
-    }
 
     /**
      * ===============================
@@ -233,7 +250,16 @@ export async function POST(req) {
           NOW()
         )
       `,
-      [ticketId, "complete", "proses", "selesai", user.id],
+      [
+        ticketId,
+        "rating",
+        null,
+        JSON.stringify({
+          rating_value: ratingValue,
+          rating_comment: ratingComment,
+        }),
+        user.id,
+      ],
     );
 
     /**
@@ -250,13 +276,13 @@ export async function POST(req) {
      */
     return Response.json({
       success: true,
-      message: "Ticket berhasil diselesaikan",
+      message: "Penilaian berhasil dikirim",
       data: updateResult.rows[0],
     });
   } catch (err) {
     await client.query("ROLLBACK");
 
-    console.error("ERROR COMPLETE TICKET:", err);
+    console.error("ERROR RATE TICKET:", err);
 
     return Response.json(
       {

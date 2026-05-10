@@ -34,6 +34,10 @@ export async function GET(req, { params }) {
           t.published_at,
           t.completed_at,
           t.completed_by,
+          t.rating_value,
+          t.rating_comment,
+          t.rated_by,
+          t.rated_at,
 
           u.id as user_id,
           u.full_name as user_name,
@@ -215,6 +219,10 @@ export async function GET(req, { params }) {
         : null,
       completed_by: row.completed_by,
       completed_by_name: row.completed_admin_name || null,
+      rating_value: row.rating_value,
+      rating_comment: row.rating_comment,
+      rated_by: row.rated_by,
+      rated_at_human: row.rated_at ? formatTimeAgo(row.rated_at) : null,
       user: {
         id: row.user_id,
         name: row.user_name,

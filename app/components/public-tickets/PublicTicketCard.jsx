@@ -152,7 +152,7 @@ const PublicTicketCard = ({ ticket }) => {
       >
         <Stack direction="row" spacing={1.5} alignItems="center">
           <Stack direction="row" spacing={0.5} alignItems="center">
-            <VisibilityOutlinedIcon sx={{ fontSize: 16 }} />
+            <VisibilityOutlinedIcon sx={{ fontSize: 16, color: ticket.stats?.views > 0 ? "text.primary" : "text.disabled" }} />
             <FontStyle
               sx={{
                 fontSize: 12,

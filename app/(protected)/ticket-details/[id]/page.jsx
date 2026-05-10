@@ -27,6 +27,7 @@ import FontStyle from "@/app/components/font-style/FontStyle";
 import TicketRejectedInformation from "@/app/components/tickets/TicketRejectedInformation";
 import ActionConfirmationModal from "@/app/components/modal/ActionConfirmationModal";
 import TicketStatusInformation from "@/app/components/tickets/TicketStatusInformation";
+import TicketRatingSection from "@/app/components/tickets/TicketRatingSection";
 
 const TicketDetail = () => {
   const theme = useTheme();
@@ -45,6 +46,8 @@ const TicketDetail = () => {
   const [openModal, setOpenModal] = useState(false);
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [ratingLoading, setRatingLoading] = useState(false);
+
   const messagesEndRef = useRef(null);
 
   const [snackbar, setSnackbar] = useState({
@@ -382,8 +385,22 @@ const TicketDetail = () => {
   };
 
   const handleCompleteTicket = async () => {
+    setSendingMessage(true);
+
+    // Jika belum ada history pesan, maka tidak bisa diselesaikan
+    if (!data.messages.length) {
+      setTimeout(() => {
+        setSnackbar({
+          open: true,
+          message: "Tiket belum memiliki history percakapan",
+          severity: "error",
+        });
+        setSendingMessage(false);
+      }, 1000);
+      return;
+    }
+
     try {
-      setSendingMessage(true);
       const res = await axios.post("/api/tickets/complete-ticket", {
         ticket_id: data.id,
       });
@@ -453,6 +470,48 @@ const TicketDetail = () => {
     }
   };
 
+  const handleSubmitRating = async (payload) => {
+    try {
+      setLoading(true);
+      setRatingLoading(true);
+
+      const res = await axios.post("/api/tickets/rate-ticket", {
+        ticket_id: data.id,
+        rating_value: payload.rating_value,
+        rating_comment: payload.rating_comment,
+      });
+
+      if (res.data.success) {
+        setSnackbar({
+          open: true,
+          message: "Penilaian berhasil dikirim",
+          severity: "success",
+        });
+
+        await getDetail(false);
+      } else {
+        setSnackbar({
+          open: true,
+          message: res?.data?.message || "Terjadi kesalahan",
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      console.log(err);
+
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || "Terjadi kesalahan",
+        severity: "error",
+      });
+    } finally {
+      setTimeout(() => {
+        setRatingLoading(false);
+        setLoading(false);
+      }, 800);
+    }
+  };
+
   return (
     <Box mb={10}>
       {/* =========================
@@ -485,6 +544,11 @@ const TicketDetail = () => {
           setOpenModal={setOpenModal}
         />
       </Paper>
+
+      {/* =========================
+        TICKET STATUS INFORMATION
+      ========================= */}
+      <TicketStatusInformation data={data} />
 
       {/* =========================
         CHAT SECTION
@@ -525,9 +589,15 @@ const TicketDetail = () => {
       )}
 
       {/* =========================
-        TICKET STATUS INFORMATION
+        TICKET RATING SECTION
       ========================= */}
-      <TicketStatusInformation data={data} />
+      <TicketRatingSection
+        data={data}
+        user={user}
+        loading={ratingLoading}
+        onSubmit={handleSubmitRating}
+        DESC_MAX={DESC_MAX}
+      />
 
       <Box ref={messagesEndRef} />
 

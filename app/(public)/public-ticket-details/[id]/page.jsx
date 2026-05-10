@@ -8,6 +8,7 @@ import TicketDescription from "@/app/components/tickets/TicketDescription";
 import TicketHeader from "@/app/components/tickets/TicketHeader";
 import TicketInformation from "@/app/components/tickets/TicketInformation";
 import TicketMessages from "@/app/components/tickets/TicketMessages";
+import TicketRatingSection from "@/app/components/tickets/TicketRatingSection";
 import TicketStatusInformation from "@/app/components/tickets/TicketStatusInformation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
@@ -54,7 +55,9 @@ const PublicTicketDetail = () => {
           err?.response?.data?.message || "Ticket publik tidak ditemukan",
         );
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
       }
     };
 
@@ -217,6 +220,8 @@ const PublicTicketDetail = () => {
           </Paper>
 
           <TicketStatusInformation data={data} />
+
+          <TicketRatingSection data={data} readOnly />
 
           <Paper
             elevation={0}

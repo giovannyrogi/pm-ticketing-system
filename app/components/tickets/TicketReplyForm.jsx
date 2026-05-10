@@ -86,7 +86,9 @@ const TicketReplyForm = ({
                 : "text.disabled",
         }}
       >
-        {message.length}/{DESC_MAX}
+        {message?.length <= DESC_MAX
+          ? `Karakter tersisa ${DESC_MAX - message.length}/${DESC_MAX}`
+          : `Karakter tersisa ${DESC_MAX * 0.9 - message.length}/${DESC_MAX}`}
       </FontStyle>
 
       {/* IMAGE */}
