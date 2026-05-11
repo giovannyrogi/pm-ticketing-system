@@ -13,6 +13,7 @@ import {
   TextField,
   Typography,
   useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -34,7 +35,9 @@ const AddTicket = ({
   onNotify,
   locations,
   categories,
+  onSuccessCreate,
 }) => {
+  const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:600px)");
   const user = useUser();
 
@@ -159,9 +162,15 @@ const AddTicket = ({
 
         setTimeout(() => {
           clearForm();
+
           setImages([]);
+
           setPreviewImages([]);
+
           onClose?.();
+
+          onSuccessCreate?.();
+
           loadingFalse?.();
         }, 800);
       } else {
@@ -413,7 +422,7 @@ const AddTicket = ({
                 {ticketDescription.length}/{DESC_MAX}
               </Typography>
             </Grid>
-            <Grid size={12} mb={1}>
+            <Grid size={12} mb={2}>
               <Typography
                 sx={{
                   fontSize: 13,
@@ -582,17 +591,33 @@ const AddTicket = ({
                 />
               </Box>
             </Grid>
-            <Grid size={12}>
+            <Grid size={isMobile ? 12 : 6} mt={isMobile ? 0 : 2}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={onClose}
+                disabled={loading}
+                sx={{
+                  fontWeight: "bold",
+                  fontSize: 14,
+                  textTransform: "none",
+                  borderRadius: 3,
+                }}
+              >
+                Kembali
+              </Button>
+            </Grid>
+            <Grid size={isMobile ? 12 : 6} mt={isMobile ? 0 : 2}>
               <Button
                 type="submit"
                 variant="contained"
-                color="primary"
+                color="success"
                 fullWidth
                 sx={{
-                  mt: 3,
                   fontWeight: "bold",
-                  fontSize: 16,
+                  fontSize: 14,
                   textTransform: "none",
+                  borderRadius: 3,
                 }}
                 disabled={loading}
                 startIcon={

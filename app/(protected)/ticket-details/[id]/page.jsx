@@ -28,6 +28,7 @@ import TicketRejectedInformation from "@/app/components/tickets/TicketRejectedIn
 import ActionConfirmationModal from "@/app/components/modal/ActionConfirmationModal";
 import TicketStatusInformation from "@/app/components/tickets/TicketStatusInformation";
 import TicketRatingSection from "@/app/components/tickets/TicketRatingSection";
+import TicketWaitingReplyInfo from "@/app/components/tickets/TicketWaitingReplyInfo";
 
 const TicketDetail = () => {
   const theme = useTheme();
@@ -49,6 +50,7 @@ const TicketDetail = () => {
   const [ratingLoading, setRatingLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const previousMessageCountRef = useRef(0);
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -190,11 +192,74 @@ const TicketDetail = () => {
   };
 
   useEffect(() => {
+    /**
+     * ===============================
+     * ONLY POLLING WHEN TICKET ACTIVE
+     * ===============================
+     */
+    if (data?.status !== "proses") return;
+
+    /**
+     * ===============================
+     * ONLY WHEN TAB ACTIVE
+     * ===============================
+     */
+    let interval;
+
+    const startPolling = () => {
+      interval = setInterval(() => {
+        /**
+         * ===============================
+         * SKIP IF TAB NOT ACTIVE
+         * ===============================
+         */
+        if (document.hidden) return;
+
+        getDetail(false);
+      }, 10000); // refresh data setiap 10 detik
+    };
+
+    startPolling();
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [data?.status]);
+
+  useEffect(() => {
     if (id) getDetail(true);
   }, [id]);
 
   useEffect(() => {
-    scrollToBottom();
+    /**
+     * ===============================
+     * PREVIOUS MESSAGE COUNT
+     * ===============================
+     */
+    const previousCount = previousMessageCountRef.current;
+
+    /**
+     * ===============================
+     * CURRENT MESSAGE COUNT
+     * ===============================
+     */
+    const currentCount = messages.length;
+
+    /**
+     * ===============================
+     * AUTO SCROLL ONLY IF NEW MESSAGE
+     * ===============================
+     */
+    if (currentCount > previousCount) {
+      scrollToBottom();
+    }
+
+    /**
+     * ===============================
+     * UPDATE PREVIOUS COUNT
+     * ===============================
+     */
+    previousMessageCountRef.current = currentCount;
   }, [messages]);
 
   const handleAccept = async () => {
@@ -589,6 +654,16 @@ const TicketDetail = () => {
       )}
 
       {/* =========================
+        WAITING REPLY INFO
+      ========================= */}
+      <TicketWaitingReplyInfo
+        waitingReplyFrom={data?.waiting_reply_from}
+        currentRole={user?.user?.role}
+        userName={data?.user?.name}
+        status={data?.status}
+      />
+
+      {/* =========================
         TICKET RATING SECTION
       ========================= */}
       <TicketRatingSection
@@ -599,7 +674,7 @@ const TicketDetail = () => {
         DESC_MAX={DESC_MAX}
       />
 
-      <Box ref={messagesEndRef} />
+      <Box ref={messagesEndRef} sx={{ mt: 10 }} />
 
       <LoadingBackdrop message="Memproses Pesan..." open={sendingMessage} />
       <RejectTicketModal

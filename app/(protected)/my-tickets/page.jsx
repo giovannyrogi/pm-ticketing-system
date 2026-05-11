@@ -23,6 +23,7 @@ import DeleteTicket from "./DeleteTicket";
 import FontStyle from "@/app/components/font-style/FontStyle";
 import { FilterFilled } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import ActionConfirmationModal from "@/app/components/modal/ActionConfirmationModal";
 
 const MyTickets = () => {
   const router = useRouter();
@@ -42,6 +43,7 @@ const MyTickets = () => {
     message: "",
     severity: "success",
   });
+  const [ticketCreatedModal, setTicketCreatedModal] = useState(false);
 
   const getDataTickets = async () => {
     try {
@@ -396,6 +398,7 @@ const MyTickets = () => {
         onNotify={(notif) => setSnackbar(notif)}
         locations={locations}
         categories={categories}
+        onSuccessCreate={() => setTicketCreatedModal(true)}
       />
       <EditTicket
         open={openEditModal}
@@ -426,6 +429,21 @@ const MyTickets = () => {
         message={snackbar.message}
         severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
+
+      <ActionConfirmationModal
+        open={ticketCreatedModal}
+        onClose={() => setTicketCreatedModal(false)}
+        title="Laporan Berhasil Dikirim"
+        description="Laporan Anda telah berhasil dibuat dan akan segera diproses oleh tim admin PMCare. Mohon menunggu maksimal 1x24 jam kerja untuk mendapatkan respon atau tindak lanjut."
+        icon="material-symbols:task-alt-rounded"
+        color="success"
+        textColor={theme.palette.success.main}
+        confirmText="Mengerti"
+        hideCancel={true}
+        onConfirm={() => {
+          setTicketCreatedModal(false);
+        }}
       />
     </Box>
   );

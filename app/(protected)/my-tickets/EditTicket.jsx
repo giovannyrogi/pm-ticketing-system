@@ -75,8 +75,6 @@ const EditTicket = ({
   const TITLE_MAX = 50;
   const DESC_MAX = 1000;
 
-  console.log("selectedData", selectedData);
-
   // ======================
   // INIT DATA
   // ======================
@@ -445,7 +443,7 @@ const EditTicket = ({
                 {ticketDescription.length}/{DESC_MAX}
               </Typography>
             </Grid>
-            <Grid size={12} mb={1}>
+            <Grid size={12} mb={2}>
               <Typography
                 sx={{
                   fontSize: 13,
@@ -662,17 +660,33 @@ const EditTicket = ({
                 />
               </Box>
             </Grid>
-            <Grid size={12}>
+            <Grid size={isMobile ? 12 : 6} mt={isMobile ? 0 : 2}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={onClose}
+                disabled={loading}
+                sx={{
+                  fontWeight: "bold",
+                  fontSize: 14,
+                  textTransform: "none",
+                  borderRadius: 3,
+                }}
+              >
+                Kembali
+              </Button>
+            </Grid>
+            <Grid size={isMobile ? 12 : 6} mt={isMobile ? 0 : 2}>
               <Button
                 type="submit"
                 variant="contained"
-                color="primary"
+                color="success"
                 fullWidth
                 sx={{
-                  mt: 3,
                   fontWeight: "bold",
-                  fontSize: 16,
+                  fontSize: 14,
                   textTransform: "none",
+                  borderRadius: 3,
                 }}
                 disabled={loading}
                 startIcon={

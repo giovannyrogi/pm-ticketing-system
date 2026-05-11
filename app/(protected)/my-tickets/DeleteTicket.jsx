@@ -7,6 +7,7 @@ import {
   useMediaQuery,
   useTheme,
   Fade,
+  Grid,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
@@ -105,7 +106,7 @@ const DeleteTicket = ({
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              mb: 2,
+              mb: 3,
             }}
           >
             <Box
@@ -166,34 +167,45 @@ const DeleteTicket = ({
               ?
             </Typography>
           </Box>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            fullWidth
-            size="small"
-            sx={{
-              mt: 2,
-              fontWeight: "bold",
-              fontFamily: "Poppins, sans-serif",
-              fontSize: 15,
-              textTransform: "none",
-              color: "#fff",
-              bgcolor: "error.main",
-              boxShadow: "0 2px 8px rgba(255,0,0,0.10)",
-              borderRadius: 2,
-              transition: "background 0.2s, box-shadow 0.2s",
-              "&:hover": {
-                bgcolor: "error.dark",
-                boxShadow: "0 4px 16px rgba(255,0,0,0.18)",
-              },
-            }}
-            disabled={loading}
-            startIcon={
-              loading ? <CircularProgress size={22} color="inherit" /> : null
-            }
-          >
-            {loading ? "Menghapus..." : "Hapus Tiket"}
-          </Button>
+          <Grid container spacing={3}>
+            <Grid size={isMobile ? 12 : 6} mt={isMobile ? 0 : 2}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={onClose}
+                disabled={loading}
+                sx={{
+                  fontWeight: "bold",
+                  fontSize: 14,
+                  textTransform: "none",
+                  borderRadius: 3,
+                }}
+              >
+                Kembali
+              </Button>
+            </Grid>
+            <Grid size={isMobile ? 12 : 6} mt={isMobile ? 0 : 2}>
+              <Button
+                onClick={handleSubmit}
+                variant="contained"
+                fullWidth
+                sx={{
+                  fontWeight: "bold",
+                  fontSize: 14,
+                  textTransform: "none",
+                  borderRadius: 3,
+                }}
+                disabled={loading}
+                startIcon={
+                  loading ? (
+                    <CircularProgress size={22} color="inherit" />
+                  ) : null
+                }
+              >
+                {loading ? "Menghapus..." : "Hapus Tiket"}
+              </Button>
+            </Grid>
+          </Grid>
         </Box>
       </Fade>
     </Modal>
