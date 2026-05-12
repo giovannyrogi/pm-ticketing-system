@@ -8,7 +8,6 @@ import {
   ListItemText,
   Collapse,
   Box,
-  Typography,
   IconButton,
   Divider,
   Button,
@@ -179,7 +178,7 @@ const LeftNavBar = ({
               display: "flex",
             }}
           >
-            <Typography
+            <FontStyle
               sx={{
                 fontSize: "10px",
                 fontWeight: "bolder",
@@ -187,7 +186,7 @@ const LeftNavBar = ({
               }}
             >
               v1.0.0
-            </Typography>
+            </FontStyle>
           </Box>
         </Box>
 
@@ -231,17 +230,17 @@ const LeftNavBar = ({
             }}
           />
           <Box sx={{ marginLeft: "-6px" }}>
-            <Typography
+            <FontStyle
               sx={{
-                fontSize: "13px",
-                fontWeight: "bold",
+                fontSize: "12px",
+                fontWeight: "500",
                 textTransform: "capitalize",
                 color: theme.palette.text.primary,
               }}
             >
               {user ? user.full_name : ""}
-            </Typography>
-            <Typography
+            </FontStyle>
+            <FontStyle
               sx={{
                 fontSize: "12px",
                 fontWeight: "bold",
@@ -250,7 +249,7 @@ const LeftNavBar = ({
               }}
             >
               {user ? user.role : ""}
-            </Typography>
+            </FontStyle>
           </Box>
         </Box>
 
@@ -290,14 +289,14 @@ const LeftNavBar = ({
                     <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
                     <ListItemText
                       primary={
-                        <Typography
+                        <FontStyle
                           sx={{
                             fontSize: "13px",
-                            fontWeight: isMenuActive(menu) ? "bold" : "normal",
+                            fontWeight: isMenuActive(menu) ? "bold" : "500",
                           }}
                         >
                           {menu.label}
-                        </Typography>
+                        </FontStyle>
                       }
                     />
                     {openDropdown === menu.value ? (
@@ -358,16 +357,16 @@ const LeftNavBar = ({
                           ) : null}
                           <ListItemText
                             primary={
-                              <Typography
+                              <FontStyle
                                 sx={{
                                   fontSize: "13px",
                                   fontWeight: isSubMenuActive(sub)
                                     ? "bold"
-                                    : "normal",
+                                    : "500",
                                 }}
                               >
                                 {sub.label}
-                              </Typography>
+                              </FontStyle>
                             }
                           />
                         </ListItemButton>
@@ -411,14 +410,14 @@ const LeftNavBar = ({
                   <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
                   <ListItemText
                     primary={
-                      <Typography
+                      <FontStyle
                         sx={{
                           fontSize: "14px",
-                          fontWeight: isMenuActive(menu) ? "bold" : "normal",
+                          fontWeight: isMenuActive(menu) ? "bold" : "500",
                         }}
                       >
                         {menu.label}
-                      </Typography>
+                      </FontStyle>
                     }
                   />
                 </ListItemButton>
@@ -469,14 +468,14 @@ const LeftNavBar = ({
                     <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
                     <ListItemText
                       primary={
-                        <Typography
+                        <FontStyle
                           sx={{
                             fontSize: "13px",
                             fontWeight: isMenuActive(menu) ? "bold" : "normal",
                           }}
                         >
                           {menu.label}
-                        </Typography>
+                        </FontStyle>
                       }
                     />
                     {openDropdown === menu.value ? (
@@ -530,7 +529,7 @@ const LeftNavBar = ({
                           ) : null}
                           <ListItemText
                             primary={
-                              <Typography
+                              <FontStyle
                                 sx={{
                                   fontSize: "13px",
                                   fontWeight: isSubMenuActive(sub)
@@ -539,7 +538,7 @@ const LeftNavBar = ({
                                 }}
                               >
                                 {sub.label}
-                              </Typography>
+                              </FontStyle>
                             }
                           />
                         </ListItemButton>
@@ -576,14 +575,14 @@ const LeftNavBar = ({
                   <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
                   <ListItemText
                     primary={
-                      <Typography
+                      <FontStyle
                         sx={{
                           fontSize: "14px",
                           fontWeight: isMenuActive(menu) ? "bold" : "normal",
                         }}
                       >
                         {menu.label}
-                      </Typography>
+                      </FontStyle>
                     }
                   />
                 </ListItemButton>
@@ -619,9 +618,9 @@ const LeftNavBar = ({
               </ListItemIcon>
               <ListItemText
                 primary={
-                  <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>
+                  <FontStyle sx={{ fontSize: "14px", fontWeight: "bold" }}>
                     Logout
-                  </Typography>
+                  </FontStyle>
                 }
               />
             </ListItemButton>

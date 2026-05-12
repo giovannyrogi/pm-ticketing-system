@@ -48,7 +48,7 @@ const MyTickets = () => {
   const getDataTickets = async () => {
     try {
       const response = await axios.get("/api/my-tickets/get-my-tickets");
-      console.log("tickets", response);
+      // console.log("tickets", response);
       setTickets(response?.data?.data);
     } catch (error) {
       console.log("error", error);
@@ -58,7 +58,7 @@ const MyTickets = () => {
   const getDataLocations = async () => {
     try {
       const response = await axios.get("/api/locations/get-locations");
-      console.log("locations", response);
+      // console.log("locations", response);
       setLocations(response?.data?.data);
     } catch (error) {
       console.log("error", error);
@@ -68,7 +68,7 @@ const MyTickets = () => {
   const getDataCategories = async () => {
     try {
       const response = await axios.get("/api/category/get-category");
-      console.log("categories", response);
+      // console.log("categories", response);
       setCategories(response?.data?.data);
     } catch (error) {
       console.log("error", error);

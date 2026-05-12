@@ -19,3 +19,28 @@ body {
   -ms-overflow-style: none; /* IE 10+ */
   scrollbar-width: none; /* Firefox */
 }
+
+@keyframes ticketTagShine {
+  0% {
+    left: -120%;
+  }
+
+  60% {
+    left: 140%;
+  }
+
+  100% {
+    left: 140%;
+  }
+}
+
+@keyframes ticketTagFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-1px);
+  }
+}

@@ -1,5 +1,9 @@
 export const ROUTE_ACCESS = [
   {
+    path: "/dashboard",
+    roles: ["admin", "superadmin"],
+  },
+  {
     path: "/ticket-list",
     roles: ["admin", "superadmin"],
   },

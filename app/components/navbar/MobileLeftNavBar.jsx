@@ -9,7 +9,6 @@ import {
   ListItemText,
   Collapse,
   Box,
-  Typography,
   IconButton,
   Divider,
   Button,
@@ -22,6 +21,7 @@ import Image from "next/image";
 import { redirect, usePathname, useRouter } from "next/navigation";
 import axios from "axios";
 import LoadingBackdrop from "../loading/Backdrop";
+import FontStyle from "../font-style/FontStyle";
 
 const MobileLeftNavBar = ({
   menus,
@@ -153,15 +153,15 @@ const MobileLeftNavBar = ({
             priority
             loading="eager"
           />
-          {/* <Typography
+          {/* <FontStyle
               sx={{
                 fontSize: "16px",
                 fontWeight: "bold",
               }}
             >
               Parking
-            </Typography>
-            <Typography
+            </FontStyle>
+            <FontStyle
               sx={{
                 fontSize: "16px",
                 fontWeight: "bolder",
@@ -169,8 +169,8 @@ const MobileLeftNavBar = ({
               }}
             >
               Onstreet
-            </Typography> */}
-          {/* <Typography
+            </FontStyle> */}
+          {/* <FontStyle
               sx={{
                 fontSize: "16px",
                 fontWeight: "bold",
@@ -178,7 +178,7 @@ const MobileLeftNavBar = ({
               }}
             >
               Pasar
-            </Typography> */}
+            </FontStyle> */}
 
           {/* Show app version */}
           <Box
@@ -186,7 +186,7 @@ const MobileLeftNavBar = ({
               display: "flex",
             }}
           >
-            <Typography
+            <FontStyle
               sx={{
                 fontSize: "10px",
                 fontWeight: "bolder",
@@ -194,7 +194,7 @@ const MobileLeftNavBar = ({
               }}
             >
               v1.0.0
-            </Typography>
+            </FontStyle>
           </Box>
         </Box>
 
@@ -245,7 +245,7 @@ const MobileLeftNavBar = ({
             }}
           />
           <Box sx={{ marginLeft: "-6px" }}>
-            <Typography
+            <FontStyle
               sx={{
                 fontSize: "13px",
                 fontWeight: "bold",
@@ -253,8 +253,8 @@ const MobileLeftNavBar = ({
               }}
             >
               {user ? user.full_name : ""}
-            </Typography>
-            <Typography
+            </FontStyle>
+            <FontStyle
               sx={{
                 fontSize: "12px",
                 fontWeight: "bold",
@@ -263,7 +263,7 @@ const MobileLeftNavBar = ({
               }}
             >
               {user ? user.role : ""}
-            </Typography>
+            </FontStyle>
           </Box>
         </Box>
 
@@ -305,16 +305,16 @@ const MobileLeftNavBar = ({
                       <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
                       <ListItemText
                         primary={
-                          <Typography
+                          <FontStyle
                             sx={{
                               fontSize: "13px",
                               fontWeight: isMenuActive(menu)
                                 ? "bold"
-                                : "normal",
+                                : "500",
                             }}
                           >
                             {menu.label}
-                          </Typography>
+                          </FontStyle>
                         }
                       />
                       {openDropdown === menu.value ? (
@@ -376,16 +376,16 @@ const MobileLeftNavBar = ({
                             ) : null}
                             <ListItemText
                               primary={
-                                <Typography
+                                <FontStyle
                                   sx={{
                                     fontSize: "13px",
                                     fontWeight: isSubMenuActive(sub)
                                       ? "bold"
-                                      : "normal",
+                                      : "500",
                                   }}
                                 >
                                   {sub.label}
-                                </Typography>
+                                </FontStyle>
                               }
                             />
                           </ListItemButton>
@@ -431,14 +431,14 @@ const MobileLeftNavBar = ({
                     <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
                     <ListItemText
                       primary={
-                        <Typography
+                        <FontStyle
                           sx={{
                             fontSize: "14px",
-                            fontWeight: isMenuActive(menu) ? "bold" : "normal",
+                            fontWeight: isMenuActive(menu) ? "bold" : "500",
                           }}
                         >
                           {menu.label}
-                        </Typography>
+                        </FontStyle>
                       }
                     />
                   </ListItemButton>
@@ -485,14 +485,14 @@ const MobileLeftNavBar = ({
                     <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
                     <ListItemText
                       primary={
-                        <Typography
+                        <FontStyle
                           sx={{
                             fontSize: "13px",
                             fontWeight: isMenuActive(menu) ? "bold" : "normal",
                           }}
                         >
                           {menu.label}{" "}
-                        </Typography>
+                        </FontStyle>
                       }
                     />
                     {openDropdown === menu.value ? (
@@ -546,7 +546,7 @@ const MobileLeftNavBar = ({
                           ) : null}
                           <ListItemText
                             primary={
-                              <Typography
+                              <FontStyle
                                 sx={{
                                   fontSize: "13px",
                                   fontWeight: isSubMenuActive(sub)
@@ -555,7 +555,7 @@ const MobileLeftNavBar = ({
                                 }}
                               >
                                 {sub.label}
-                              </Typography>
+                              </FontStyle>
                             }
                           />
                         </ListItemButton>
@@ -592,14 +592,14 @@ const MobileLeftNavBar = ({
                   <ListItemIcon sx={{ mr: -1.6 }}>{menu.icon}</ListItemIcon>
                   <ListItemText
                     primary={
-                      <Typography
+                      <FontStyle
                         sx={{
                           fontSize: "14px",
                           fontWeight: isMenuActive(menu) ? "bold" : "normal",
                         }}
                       >
                         {menu.label}
-                      </Typography>
+                      </FontStyle>
                     }
                   />
                 </ListItemButton>
@@ -635,9 +635,9 @@ const MobileLeftNavBar = ({
               </ListItemIcon>
               <ListItemText
                 primary={
-                  <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>
+                  <FontStyle sx={{ fontSize: "14px", fontWeight: "bold" }}>
                     Logout
-                  </Typography>
+                  </FontStyle>
                 }
               />
             </ListItemButton>
@@ -661,7 +661,7 @@ const MobileLeftNavBar = ({
         }}
       >
         <Icon icon="line-md:close-to-menu-transition" fontSize={25} />
-        <Typography>Menu</Typography>
+        <FontStyle>Menu</FontStyle>
       </Button> */}
       <Drawer
         anchor="left"

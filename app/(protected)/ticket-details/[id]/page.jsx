@@ -51,6 +51,7 @@ const TicketDetail = () => {
 
   const messagesEndRef = useRef(null);
   const previousMessageCountRef = useRef(0);
+  const showTicketStatus = true;
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -101,7 +102,7 @@ const TicketDetail = () => {
       if (showLoading) setLoading(true); /* untuk refresh */
 
       const res = await axios.get(`/api/ticket-details/${id}`);
-      console.log("response", res);
+      // console.log("response", res);
 
       setTimeout(() => {
         if (res.data.success) {
@@ -613,7 +614,10 @@ const TicketDetail = () => {
       {/* =========================
         TICKET STATUS INFORMATION
       ========================= */}
-      <TicketStatusInformation data={data} />
+      <TicketStatusInformation
+        data={data}
+        showTicketStatus={showTicketStatus}
+      />
 
       {/* =========================
         CHAT SECTION

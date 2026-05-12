@@ -10,7 +10,7 @@ import FontStyle from "@/app/components/font-style/FontStyle";
 import StatusTag from "../status-tag/StatusTag";
 import { color } from "framer-motion";
 
-const TicketStatusInformation = ({ data }) => {
+const TicketStatusInformation = ({ data, showTicketStatus }) => {
   const theme = useTheme();
 
   /**
@@ -138,22 +138,24 @@ const TicketStatusInformation = ({ data }) => {
         </Box>
 
         {/* PUBLISH STATUS */}
-        {/* <Box
-          sx={{
-            // mobile device display none
-            "@media (max-width: 600px)": {
-              display: "none",
-            },
-          }}
-        >
-          {isCompleted && (
-            <StatusTag
-              label={data?.is_public ? "Sudah Dipublish" : "Belum Dipublish"}
-              color={data?.is_public ? theme.palette.primary.main : "gold"}
-              icon="material-symbols:task-alt-rounded"
-            />
-          )}
-        </Box> */}
+        {showTicketStatus && (
+          <Box
+            sx={{
+              // mobile device display none
+              "@media (max-width: 600px)": {
+                display: "none",
+              },
+            }}
+          >
+            {isCompleted && (
+              <StatusTag
+                label={data?.is_public ? "Sudah Dipublish" : "Belum Dipublish"}
+                color={data?.is_public ? theme.palette.primary.main : "gold"}
+                icon="material-symbols:task-alt-rounded"
+              />
+            )}
+          </Box>
+        )}
       </Box>
 
       <Divider sx={{ mb: 2 }} />
@@ -256,7 +258,7 @@ const TicketStatusInformation = ({ data }) => {
         )}
 
         {/* PUBLISH INFO */}
-        {/* {isCompleted && data?.is_public && (
+        {isCompleted && data?.is_public && showTicketStatus && (
           <Grid size={12}>
             <Box
               sx={{
@@ -320,7 +322,7 @@ const TicketStatusInformation = ({ data }) => {
               </Grid>
             </Box>
           </Grid>
-        )} */}
+        )}
       </Grid>
     </Paper>
   );

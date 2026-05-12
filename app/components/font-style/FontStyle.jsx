@@ -4,7 +4,6 @@ const FontStyle = ({
   children,
   fontWeight = "normal",
   fontSize = 12,
-  color = "text.primary",
   sx = {},
   ...props
 }) => {
@@ -19,7 +18,6 @@ const FontStyle = ({
         wordBreak: "break-word",
         overflowWrap: "anywhere",
         letterSpacing: "0.02em",
-        color,
         ...sx, // Merge with custom styles
       }}
     >

@@ -39,7 +39,7 @@ const Category = () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/category/get-category");
-      console.log("categories", response);
+      // console.log("categories", response);
       setCategories(response.data.data);
       setTimeout(() => {
         setLoading(false);

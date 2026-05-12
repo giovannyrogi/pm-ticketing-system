@@ -58,7 +58,7 @@ const TicketList = () => {
   const getData = async () => {
     try {
       const res = await axios.get("/api/ticket-list/get-ticket-list");
-      console.log("res", res.data);
+      // console.log("res", res.data);
 
       setTickets(res.data.data || []);
       setFiltered(res.data.data || []);

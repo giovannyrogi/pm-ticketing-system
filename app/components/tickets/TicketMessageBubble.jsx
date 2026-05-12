@@ -1,12 +1,14 @@
 "use client";
 
 import FontStyle from "@/app/components/font-style/FontStyle";
-import { Box, Divider } from "@mui/material";
+import { Box, Divider, useTheme } from "@mui/material";
 import Image from "next/image";
 import { useState } from "react";
 import ImagePreviewModal from "../image/ImagePreviewModal";
+import StatusTag from "../status-tag/StatusTag";
 
 const TicketMessageBubble = ({ message, isAdmin = false }) => {
+  const theme = useTheme();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -60,17 +62,77 @@ const TicketMessageBubble = ({ message, isAdmin = false }) => {
           gap={2}
           mb={0.5}
         >
-          <FontStyle
-            fontSize={12}
-            fontWeight="bold"
+          <Box
             sx={{
-              color: isAdmin ? "primary.main" : "text.primary",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
             }}
           >
-            {message?.sender_name?.charAt(0).toUpperCase() +
-              message?.sender_name?.slice(1)}
-          </FontStyle>
+            <FontStyle
+              fontSize={12}
+              fontWeight="bold"
+              sx={{
+                color: isAdmin ? "primary.main" : "text.primary",
+              }}
+            >
+              {message?.sender_name?.charAt(0).toUpperCase() +
+                message?.sender_name?.slice(1)}
+            </FontStyle>
 
+            {["admin", "superadmin"].includes(message?.sender_role) && (
+              <Box
+                sx={{
+                  position: "relative",
+
+                  overflow: "hidden",
+
+                  borderRadius: "6px",
+
+                  display: "inline-flex",
+
+                  alignItems: "center",
+
+                  justifyContent: "center",
+
+                  isolation: "isolate",
+
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+
+                  animation: "ticketTagFloat 3s ease-in-out infinite",
+
+                  "&::before": {
+                    content: '""',
+
+                    position: "absolute",
+
+                    top: 0,
+                    left: "-120%",
+
+                    width: "60%",
+                    height: "100%",
+
+                    background:
+                      "linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent)",
+
+                    transform: "skewX(-20deg)",
+
+                    animation: "ticketTagShine 2.8s ease-in-out infinite",
+
+                    zIndex: 2,
+
+                    pointerEvents: "none",
+                  },
+                }}
+              >
+                <StatusTag
+                  label={message?.sender_role}
+                  fontSize={10}
+                  color={"geekblue"}
+                />
+              </Box>
+            )}
+          </Box>
           <FontStyle
             fontSize={11}
             fontWeight="500"

@@ -41,9 +41,11 @@ export async function GET(req, { params }) {
 
           u.id as user_id,
           u.full_name as user_name,
+          u.role as user_role,
 
           a.id as admin_id,
           a.full_name as admin_name,
+          a.role as admin_role,
 
           ca.id as completed_admin_id,
           ca.full_name as completed_admin_name,
@@ -226,11 +228,13 @@ export async function GET(req, { params }) {
       user: {
         id: row.user_id,
         name: row.user_name,
+        role: row.user_role,
       },
       admin: row.admin_id
         ? {
             id: row.admin_id,
             name: row.admin_name,
+            role: row.admin_role,
           }
         : null,
       category: {

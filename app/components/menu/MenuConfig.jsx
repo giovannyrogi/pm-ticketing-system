@@ -3,11 +3,37 @@ import { Icon } from "@iconify/react";
 const MENU_CONFIG = [
   {
     label: "Beranda",
-    value: "home",
+    value: "public-home",
     path: "/",
-    icon: <Icon icon="svg-spinners:blocks-scale" fontSize="20px" />,
-    roles: ["user", "admin", "superadmin"],
+    icon: <Icon icon="tabler:home-filled" fontSize="20px" />,
+    roles: ["user"],
+    showIcon: true,
   },
+  {
+    label: "Dashboard",
+    value: "dashboard",
+    icon: <Icon icon="tabler:home" fontSize="20px" />,
+    roles: ["admin", "superadmin"],
+    submenu: [
+      {
+        label: "Beranda",
+        value: "protected-home",
+        path: "/",
+        icon: <Icon icon="tabler:home-filled" fontSize="20px" />,
+        roles: ["admin", "superadmin"],
+        showIcon: true,
+      },
+      {
+        label: "Dashboard",
+        value: "dashboard",
+        path: "/dashboard",
+        icon: <Icon icon="svg-spinners:blocks-scale" fontSize="20px" />,
+        roles: ["admin", "superadmin"],
+        showIcon: true,
+      },
+    ],
+  },
+
   {
     label: "Daftar Tiket",
     value: "ticketList",
