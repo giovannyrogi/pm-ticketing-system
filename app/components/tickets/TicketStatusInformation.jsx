@@ -138,7 +138,7 @@ const TicketStatusInformation = ({ data }) => {
         </Box>
 
         {/* PUBLISH STATUS */}
-        <Box
+        {/* <Box
           sx={{
             // mobile device display none
             "@media (max-width: 600px)": {
@@ -153,7 +153,7 @@ const TicketStatusInformation = ({ data }) => {
               icon="material-symbols:task-alt-rounded"
             />
           )}
-        </Box>
+        </Box> */}
       </Box>
 
       <Divider sx={{ mb: 2 }} />
@@ -256,7 +256,7 @@ const TicketStatusInformation = ({ data }) => {
         )}
 
         {/* PUBLISH INFO */}
-        {isCompleted && data?.is_public && (
+        {/* {isCompleted && data?.is_public && (
           <Grid size={12}>
             <Box
               sx={{
@@ -320,7 +320,7 @@ const TicketStatusInformation = ({ data }) => {
               </Grid>
             </Box>
           </Grid>
-        )}
+        )} */}
       </Grid>
     </Paper>
   );
