@@ -1,4 +1,9 @@
 import pool from "@/lib/dbConfig";
+import {
+  emailRegex,
+  phoneRegex,
+  sanitizePhoneNumber,
+} from "@/app/utils/validationTextField";
 import bcrypt from "bcryptjs";
 const { NextResponse } = require("next/server");
 
@@ -6,6 +11,15 @@ export async function POST(req) {
   try {
     const { fullName, username, password, email, phoneNumber } =
       await req.json();
+
+    /**
+     * ===============================
+     * SANITIZE INPUT
+     * ===============================
+     */
+    const sanitizedEmail = email?.trim().toLowerCase();
+
+    const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
 
     console.log("full_name", fullName);
     console.log("username", username);
@@ -34,9 +48,38 @@ export async function POST(req) {
       );
     }
 
+    /**
+     * ===============================
+     * EMAIL FORMAT VALIDATION
+     * ===============================
+     */
+    if (!emailRegex.test(sanitizedEmail)) {
+      return NextResponse.json(
+        {
+          message: "Format email tidak valid",
+        },
+        { status: 400 },
+      );
+    }
+
     if (!phoneNumber) {
       return NextResponse.json(
         { message: "Nomor Telepon harus diisi" },
+        { status: 400 },
+      );
+    }
+
+    /**
+     * ===============================
+     * PHONE FORMAT VALIDATION
+     * ===============================
+     */
+    if (!phoneRegex.test(sanitizedPhoneNumber)) {
+      return NextResponse.json(
+        {
+          message:
+            "Nomor telepon harus diawali angka 8 dan terdiri dari 10-14 digit",
+        },
         { status: 400 },
       );
     }
@@ -59,7 +102,7 @@ export async function POST(req) {
     const emailRes = await pool.query(
       `SELECT id, full_name, username, password, role, email, phone_number, is_active
        FROM users WHERE email = $1`,
-      [email],
+      [sanitizedEmail],
     );
 
     if (emailRes.rows.length > 0) {
@@ -74,7 +117,15 @@ export async function POST(req) {
     // Simpan user baru ke database
     const user = await pool.query(
       `INSERT INTO users (full_name, username, password, role, email, phone_number, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [fullName, username, hashedPassword, "user", email, phoneNumber, true],
+      [
+        fullName,
+        username,
+        hashedPassword,
+        "user",
+        sanitizedEmail,
+        sanitizedPhoneNumber,
+        true,
+      ],
     );
 
     const response = NextResponse.json(

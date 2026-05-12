@@ -28,71 +28,111 @@ const SORT_OPTIONS = [
 ];
 
 const Home = () => {
-  const [tickets, setTickets] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [allTickets, setAllTickets] = useState([]);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 350);
+  const getPublicTickets = async () => {
+    try {
+      setLoading(true);
 
-    return () => clearTimeout(timeout);
-  }, [search]);
+      setErrorMessage("");
 
-  const query = useMemo(() => {
-    const params = new URLSearchParams();
+      const res = await axios.get("/api/public/tickets/ticket-list");
 
-    if (debouncedSearch.trim()) {
-      params.set("search", debouncedSearch.trim());
-    }
+      if (res.data.success) {
+        setAllTickets(res.data.data || []);
 
-    if (category !== "all") {
-      params.set("category", category);
-    }
+        setCategories(res.data.filters?.categories || []);
+      } else {
+        setAllTickets([]);
 
-    params.set("sort", sort);
-
-    return params.toString();
-  }, [debouncedSearch, category, sort]);
-
-  useEffect(() => {
-    const getPublicTickets = async () => {
-      try {
-        setLoading(true);
-        setErrorMessage("");
-
-        const res = await axios.get(`/api/public/tickets/ticket-list?${query}`);
-
-        console.log("res", res);
-
-        if (res.data.success) {
-          setTickets(res.data.data || []);
-          setCategories(res.data.filters?.categories || []);
-        } else {
-          setTickets([]);
-          setErrorMessage(res.data.message || "Gagal mengambil tiket publik");
-        }
-      } catch (err) {
-        console.log("ERROR PUBLIC TICKETS:", err);
-        setTickets([]);
-        setErrorMessage(
-          err?.response?.data?.message || "Gagal mengambil tiket publik",
-        );
-      } finally {
-        setTimeout(() => {
-          setLoading(false);
-        }, 1000);
+        setErrorMessage(res.data.message || "Gagal mengambil tiket publik");
       }
-    };
+    } catch (err) {
+      console.log("ERROR PUBLIC TICKETS:", err);
 
+      setAllTickets([]);
+
+      setErrorMessage(
+        err?.response?.data?.message || "Gagal mengambil tiket publik",
+      );
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+    }
+  };
+
+  useEffect(() => {
     getPublicTickets();
-  }, [query]);
+  }, []);
+
+  const tickets = useMemo(() => {
+    let filtered = [...allTickets];
+
+    /**
+     * =========================
+     * SEARCH
+     * =========================
+     */
+    if (search.trim()) {
+      const keyword = search.toLowerCase();
+
+      filtered = filtered.filter((ticket) => {
+        return (
+          ticket.ticket_title?.toLowerCase().includes(keyword) ||
+          ticket.ticket_description?.toLowerCase().includes(keyword) ||
+          ticket.ticket_code?.toLowerCase().includes(keyword) ||
+          ticket.category?.name?.toLowerCase().includes(keyword) ||
+          ticket.location?.name?.toLowerCase().includes(keyword)
+        );
+      });
+    }
+
+    /**
+     * =========================
+     * CATEGORY
+     * =========================
+     */
+    if (category !== "all") {
+      filtered = filtered.filter(
+        (ticket) => String(ticket.category?.id) === String(category),
+      );
+    }
+
+    /**
+     * =========================
+     * SORTING
+     * =========================
+     */
+    switch (sort) {
+      case "oldest":
+        filtered.sort(
+          (a, b) => new Date(a.published_at) - new Date(b.published_at),
+        );
+        break;
+
+      case "popular":
+        filtered.sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0));
+        break;
+
+      case "liked":
+        filtered.sort((a, b) => (b.stats?.likes || 0) - (a.stats?.likes || 0));
+        break;
+
+      default:
+        filtered.sort(
+          (a, b) => new Date(b.published_at) - new Date(a.published_at),
+        );
+    }
+
+    return filtered;
+  }, [allTickets, search, category, sort]);
 
   return (
     <Box
@@ -231,16 +271,7 @@ const Home = () => {
       <Stack spacing={1.5}>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        {loading ? //   sx={{ // <Box
-        //     py: 8,
-        //     display: "flex",
-        //     alignItems: "center",
-        //     justifyContent: "center",
-        //   }}
-        // >
-        //   <CircularProgress />
-        // </Box>
-        undefined : tickets.length === 0 ? (
+        {loading ? undefined : tickets.length === 0 ? ( // </Box> //   <CircularProgress /> // > //   }} //     justifyContent: "center", //     alignItems: "center", //     display: "flex", //     py: 8, //   sx={{ // <Box
           <Paper
             elevation={0}
             sx={{
