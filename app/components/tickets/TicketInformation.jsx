@@ -13,7 +13,11 @@ const TicketInformation = ({ data }) => {
       {/* Nama Pelapor */}
       <Grid size={{ xs: 12, sm: 6 }}>
         <Box display="flex" gap={1}>
-          <Icon icon="mdi:user" width={18} color={theme.palette.text.disabled} />
+          <Icon
+            icon="mdi:user"
+            width={18}
+            color={theme.palette.text.disabled}
+          />
 
           <Box>
             <FontStyle fontSize={12} fontWeight="bold" color="text.disabled">
@@ -21,7 +25,9 @@ const TicketInformation = ({ data }) => {
             </FontStyle>
 
             <FontStyle fontSize={13} fontWeight="500">
-              {data?.user?.name || "-"}
+              {data?.is_public
+                ? "Anonymous (Nama disembunyikan)"
+                : data?.user?.name || "-"}
             </FontStyle>
           </Box>
         </Box>
@@ -30,7 +36,11 @@ const TicketInformation = ({ data }) => {
       {/* LOKASI */}
       <Grid size={{ xs: 12, sm: 6 }}>
         <Box display="flex" gap={1}>
-          <Icon icon="mdi:map-marker" width={18} color={theme.palette.text.disabled} />
+          <Icon
+            icon="mdi:map-marker"
+            width={18}
+            color={theme.palette.text.disabled}
+          />
 
           <Box>
             <FontStyle fontSize={12} fontWeight="bold" color="text.disabled">
@@ -47,7 +57,11 @@ const TicketInformation = ({ data }) => {
       {/* STATUS */}
       <Grid size={{ xs: 12, sm: 6 }}>
         <Box display="flex" gap={1}>
-          <Icon icon="mdi:progress-clock" width={18} color={theme.palette.text.disabled} />
+          <Icon
+            icon="mdi:progress-clock"
+            width={18}
+            color={theme.palette.text.disabled}
+          />
 
           <Box>
             <FontStyle fontSize={12} fontWeight="bold" color="text.disabled">
@@ -62,7 +76,11 @@ const TicketInformation = ({ data }) => {
       {/* KATEGORI */}
       <Grid size={{ xs: 12, sm: 6 }}>
         <Box display="flex" gap={1}>
-          <Icon icon="ic:baseline-category" width={18} color={theme.palette.text.disabled} />
+          <Icon
+            icon="ic:baseline-category"
+            width={18}
+            color={theme.palette.text.disabled}
+          />
 
           <Box>
             <FontStyle fontSize={12} fontWeight="bold" color="text.disabled">

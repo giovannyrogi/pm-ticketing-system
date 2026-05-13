@@ -7,7 +7,11 @@ import { useState } from "react";
 import ImagePreviewModal from "../image/ImagePreviewModal";
 import StatusTag from "../status-tag/StatusTag";
 
-const TicketMessageBubble = ({ message, isAdmin = false }) => {
+const TicketMessageBubble = ({
+  message,
+  isAdmin = false,
+  isPublic = false,
+}) => {
   const theme = useTheme();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -76,8 +80,10 @@ const TicketMessageBubble = ({ message, isAdmin = false }) => {
                 color: isAdmin ? "primary.main" : "text.primary",
               }}
             >
-              {message?.sender_name?.charAt(0).toUpperCase() +
-                message?.sender_name?.slice(1)}
+              {isPublic && message?.sender_role === "user"
+                ? "Anonymous"
+                : message?.sender_name?.charAt(0).toUpperCase() +
+                    message?.sender_name?.slice(1) || "Unknown User"}
             </FontStyle>
 
             {["admin", "superadmin"].includes(message?.sender_role) && (

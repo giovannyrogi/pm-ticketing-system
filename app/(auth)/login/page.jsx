@@ -147,8 +147,8 @@ const LoginPage = () => {
             <Image
               src={"/logo-pm-ticketing1.png"}
               alt="logo-pdpasar"
-              width={160}
-              height={100}
+              width={140}
+              height={80}
               // style=1{backgroundColor:'orange'}}
               loading="eager"
             />

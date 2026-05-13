@@ -102,7 +102,7 @@ const TicketDetail = () => {
       if (showLoading) setLoading(true); /* untuk refresh */
 
       const res = await axios.get(`/api/ticket-details/${id}`);
-      // console.log("response", res);
+      console.log("response", res);
 
       setTimeout(() => {
         if (res.data.success) {
@@ -636,7 +636,11 @@ const TicketDetail = () => {
         >
           {/* CHAT */}
           <>
-            <TicketMessages messages={messages} user={user} />
+            <TicketMessages
+              messages={messages}
+              user={user}
+              isPublic={data?.is_public}
+            />
 
             {shouldShowReplyForm && (
               <TicketReplyForm
