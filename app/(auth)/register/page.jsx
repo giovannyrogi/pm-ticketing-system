@@ -151,7 +151,6 @@ const RegisterPage = () => {
       return;
     }
 
-
     /**
      * =========================
      * RESTORE FORM DATA
@@ -356,7 +355,6 @@ const RegisterPage = () => {
         email,
         phoneNumber: prefixedPhoneNumber,
       });
-
 
       if (response?.data?.success) {
         setTimeout(() => {
@@ -803,9 +801,6 @@ const RegisterPage = () => {
                     textTransform: "none",
                   }}
                   disabled={loading || redirecting}
-                  startIcon={
-                    loading && <CircularProgress size={22} color="inherit" />
-                  }
                 >
                   {loading ? "Loading..." : "Daftar Sekarang"}
                 </Button>
