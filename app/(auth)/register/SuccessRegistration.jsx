@@ -35,7 +35,7 @@ const SuccessRegistration = ({
   const isMobile = useMediaQuery("(max-width:600px)");
   const theme = useTheme();
 
-  console.log("dataUser", dataUser);
+  // console.log("dataUser", dataUser);
 
   const style = {
     position: "absolute",

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -13,6 +13,7 @@ import {
   CircularProgress,
   useTheme,
   Grid,
+  ButtonBase,
 } from "@mui/material";
 import { Icon } from "@iconify/react";
 import axios from "axios";
@@ -29,6 +30,12 @@ import {
   validateEmail,
   validatePhoneNumber,
 } from "@/app/utils/validationTextField";
+import OTPVerificationModal from "@/app/components/otp-verification-modal/OTPVerificationModal";
+import {
+  saveOTPSession,
+  getOTPSession,
+  clearOTPSession,
+} from "@/app/utils/otpSession";
 
 const RegisterPage = () => {
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -54,6 +61,127 @@ const RegisterPage = () => {
   const [dataUser, setDataUser] = useState(null);
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [openOtpModal, setOpenOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpExpiredAt, setOtpExpiredAt] = useState(null);
+  const [isOTPActive, setIsOTPActive] = useState(false);
+
+  const [resendAvailableAt, setResendAvailableAt] = useState(null);
+  const [otpRemainingTime, setOtpRemainingTime] = useState(0);
+
+  useEffect(() => {
+    if (!otpExpiredAt) return;
+
+    const interval = setInterval(() => {
+      if (new Date() > new Date(otpExpiredAt)) {
+        /**
+         * =========================
+         * CLEAR SESSION
+         * =========================
+         */
+        clearOTPSession();
+
+        /**
+         * =========================
+         * UNLOCK PHONE INPUT
+         * =========================
+         */
+        setIsOTPActive(false);
+
+        /**
+         * =========================
+         * RESET EXPIRED STATE
+         * =========================
+         */
+        setOtpExpiredAt(null);
+
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpExpiredAt]);
+
+  const formatCountdown = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+
+    const remainingSeconds = seconds % 60;
+
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  useEffect(() => {
+    if (!otpExpiredAt) {
+      setOtpRemainingTime(0);
+
+      return;
+    }
+
+    const updateCountdown = () => {
+      const diff = Math.floor((new Date(otpExpiredAt) - new Date()) / 1000);
+
+      setOtpRemainingTime(diff > 0 ? diff : 0);
+    };
+
+    /**
+     * INITIAL RUN
+     */
+    updateCountdown();
+
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpExpiredAt]);
+
+  useEffect(() => {
+    const otpSession = getOTPSession();
+
+    if (!otpSession) return;
+
+    /**
+     * =========================
+     * OTP EXPIRED
+     * =========================
+     */
+    if (new Date() > new Date(otpSession.expiredAt)) {
+      clearOTPSession();
+
+      setIsOTPActive(false);
+
+      return;
+    }
+
+
+    /**
+     * =========================
+     * RESTORE FORM DATA
+     * =========================
+     */
+    setFullName(otpSession.fullName || "");
+
+    setUsername(otpSession.username || "");
+
+    setPassword(otpSession.password || "");
+
+    setKonfirmasiPassword(otpSession.konfirmasiPassword || "");
+
+    setEmail(otpSession.email || "");
+
+    setPhoneNumber(otpSession.phoneNumber || "");
+
+    /**
+     * =========================
+     * RESTORE OTP SESSION
+     * =========================
+     */
+    setOtpExpiredAt(otpSession.expiredAt);
+
+    setResendAvailableAt(otpSession.resendAvailableAt);
+
+    setOpenOtpModal(true);
+
+    setIsOTPActive(true);
+  }, []);
 
   const handlePhoneNumberChange = (e) => {
     let value = e.target.value;
@@ -110,6 +238,60 @@ const RegisterPage = () => {
     setEmailError(validateEmail(value));
   };
 
+  const handleResendOTP = async () => {
+    setLoading(true);
+    setRedirecting(true);
+    try {
+      const response = await axios.post("/api/register/send-otp", {
+        fullName,
+        username,
+        password,
+        email,
+        phoneNumber: `${phoneNumber}`,
+      });
+
+      setOtpExpiredAt(response.data.expiredAt);
+
+      setResendAvailableAt(response.data.resendAvailableAt);
+
+      saveOTPSession({
+        fullName,
+        username,
+        password,
+        konfirmasiPassword,
+        email,
+        phoneNumber,
+
+        expiredAt: response.data.expiredAt,
+
+        resendAvailableAt: response.data.resendAvailableAt,
+      });
+
+      setTimeout(() => {
+        setLoading(false);
+        setRedirecting(false);
+        setSnackbar({
+          open: true,
+          message: "Kode OTP berhasil dikirim ulang",
+          severity: "success",
+        });
+
+        setIsOTPActive(true);
+      }, 800);
+    } catch (error) {
+      // console.log("error", error);
+      setTimeout(() => {
+        setLoading(false);
+        setRedirecting(false);
+        setSnackbar({
+          open: true,
+          message: error?.response?.data?.message,
+          severity: "error",
+        });
+      }, 800);
+    }
+  };
+
   const handleRegister = async () => {
     setLoading(true);
     setRedirecting(true);
@@ -161,14 +343,13 @@ const RegisterPage = () => {
 
       setLoading(false);
       setRedirecting(false);
-
       return;
     }
 
     const prefixedPhoneNumber = `62${phoneNumber}`;
 
     try {
-      const response = await axios.post("/api/register", {
+      const response = await axios.post("/api/register/send-otp", {
         fullName,
         username,
         password,
@@ -176,19 +357,30 @@ const RegisterPage = () => {
         phoneNumber: prefixedPhoneNumber,
       });
 
-      console.log("response", response);
 
       if (response?.data?.success) {
-        setSnackbar({
-          open: true,
-          message: "Pendaftaran akun berhasil!",
-          severity: "success",
-        });
-
-        setDataUser(response?.data?.data);
         setTimeout(() => {
-          setOpenSuccessRegistrationModal(true);
           setLoading(false);
+          setRedirecting(false);
+          setOtpExpiredAt(response.data.expiredAt);
+
+          setResendAvailableAt(response.data.resendAvailableAt);
+
+          saveOTPSession({
+            fullName,
+            username,
+            password,
+            konfirmasiPassword,
+            email,
+            expiredAt: response.data.expiredAt,
+
+            resendAvailableAt: response.data.resendAvailableAt,
+
+            phoneNumber: phoneNumber,
+          });
+
+          setOpenOtpModal(true);
+          setIsOTPActive(true);
           setRedirecting(false);
         }, 800);
       } else {
@@ -201,7 +393,36 @@ const RegisterPage = () => {
         setRedirecting(false);
       }
     } catch (err) {
-      console.log("err", err);
+      // console.log("err", err?.response);
+      if (err?.response?.status === 429) {
+        const data = err.response.data;
+
+        setOtpExpiredAt(data.expiredAt);
+
+        setResendAvailableAt(data.resendAvailableAt);
+
+        setOpenOtpModal(true);
+
+        saveOTPSession({
+          fullName,
+          username,
+          password,
+          email,
+          phoneNumber,
+          konfirmasiPassword,
+          expiredAt: data.expiredAt,
+
+          resendAvailableAt: data.resendAvailableAt,
+        });
+        setSnackbar({
+          open: true,
+          message: err.response?.data?.message || "Login gagal!",
+          severity: "info",
+        });
+        setLoading(false);
+        setRedirecting(false);
+        return;
+      }
       setSnackbar({
         open: true,
         message: err.response?.data?.message || "Login gagal!",
@@ -209,6 +430,52 @@ const RegisterPage = () => {
       });
       setLoading(false);
       setRedirecting(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    try {
+      setLoading(true);
+
+      const response = await axios.post("/api/register/verify-otp", {
+        fullName,
+        username,
+        password,
+        email,
+        phoneNumber,
+        otpCode,
+      });
+
+      if (response?.data?.success) {
+        /**
+         * =========================
+         * CLEAR OTP SESSION
+         * =========================
+         */
+        clearOTPSession();
+
+        setOpenOtpModal(false);
+
+        setDataUser(response?.data?.data);
+
+        setOpenSuccessRegistrationModal(true);
+
+        setSnackbar({
+          open: true,
+          message: "Registrasi berhasil",
+          severity: "success",
+        });
+
+        setIsOTPActive(false);
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error?.response?.data?.message || "Verifikasi OTP gagal",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -358,17 +625,44 @@ const RegisterPage = () => {
                   value={phoneNumber}
                   onChange={handlePhoneNumberChange}
                   required
-                  disabled={loading || redirecting}
+                  disabled={loading || redirecting || isOTPActive}
                   color="primary"
                   error={!!phoneError}
-                  helperText={phoneError}
+                  helperText={
+                    phoneError ? (
+                      phoneError
+                    ) : isOTPActive && otpRemainingTime > 0 ? (
+                      <Typography
+                        component="span"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.7,
+
+                          mt: 0.3,
+
+                          fontSize: 12,
+
+                          fontWeight: 600,
+
+                          fontFamily: "Poppins",
+
+                          color: "warning.main",
+                        }}
+                      >
+                        Nomor telepon terkunci sementara selama proses
+                        verifikasi OTP ({formatCountdown(otpRemainingTime)})
+                      </Typography>
+                    ) : null
+                  }
                   FormHelperTextProps={{
                     sx: {
                       ml: 0,
                       mr: 0,
                       textFamily: "Poppins",
-                      fontWeight: "500",
-                      fontSize: 13,
+                      fontWeight: 500,
+                      fontSize: 12,
+                      lineHeight: 1.5,
                     },
                   }}
                   inputProps={{
@@ -537,6 +831,24 @@ const RegisterPage = () => {
         setRedirectingFalse={() => setRedirecting(false)}
         setLoadingTrue={() => setLoading(true)}
         setLoadingFalse={() => setLoading(false)}
+      />
+
+      <OTPVerificationModal
+        open={openOtpModal}
+        onClose={() => {
+          setOpenOtpModal(false);
+        }}
+        otpCode={otpCode}
+        setOtpCode={setOtpCode}
+        onSubmit={handleVerifyOTP}
+        onResend={handleResendOTP}
+        expiredAt={otpExpiredAt}
+        resendAvailableAt={resendAvailableAt}
+        loading={loading}
+        otpLength={6}
+        title="Verifikasi Nomor WhatsApp"
+        description="Masukkan kode OTP yang telah dikirimkan ke nomor WhatsApp Anda untuk melanjutkan proses pendaftaran akun PMCare."
+        phoneNumber={`+62${phoneNumber}`}
       />
 
       {/* Snackbar notification */}
