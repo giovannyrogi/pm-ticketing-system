@@ -296,9 +296,6 @@ const TicketReplyForm = ({
 
             boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
           }}
-          startIcon={
-            loading ? <CircularProgress size={18} color="inherit" /> : null
-          }
         >
           {loading ? "Mengirim..." : "Kirim Balasan"}
         </Button>

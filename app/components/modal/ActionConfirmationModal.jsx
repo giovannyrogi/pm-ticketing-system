@@ -166,9 +166,6 @@ const ActionConfirmationModal = ({
               onClick={onConfirm}
               disabled={loading}
               color={color}
-              startIcon={
-                loading ? <CircularProgress size={18} color="inherit" /> : null
-              }
               sx={{
                 height: 46,
 

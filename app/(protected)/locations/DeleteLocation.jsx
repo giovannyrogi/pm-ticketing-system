@@ -197,9 +197,6 @@ const DeleteLocation = ({
               },
             }}
             disabled={loading}
-            startIcon={
-              loading ? <CircularProgress size={22} color="inherit" /> : null
-            }
           >
             {loading ? "Menghapus..." : "Hapus"}
           </Button>

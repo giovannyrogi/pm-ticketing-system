@@ -146,9 +146,6 @@ const SuccessRegistration = ({
               },
             }}
             disabled={loading}
-            startIcon={
-              loading ? <CircularProgress size={22} color="inherit" /> : null
-            }
           >
             {loading ? "Loading..." : "Login Sekarang"}
           </Button>

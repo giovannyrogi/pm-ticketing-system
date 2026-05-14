@@ -196,11 +196,6 @@ const DeleteTicket = ({
                   borderRadius: 3,
                 }}
                 disabled={loading}
-                startIcon={
-                  loading ? (
-                    <CircularProgress size={22} color="inherit" />
-                  ) : null
-                }
               >
                 {loading ? "Menghapus..." : "Hapus Tiket"}
               </Button>

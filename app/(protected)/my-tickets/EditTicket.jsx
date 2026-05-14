@@ -689,9 +689,6 @@ const EditTicket = ({
                   borderRadius: 3,
                 }}
                 disabled={loading}
-                startIcon={
-                  loading && <CircularProgress size={22} color="inherit" />
-                }
               >
                 {loading ? "Loading..." : "Perbarui Ticket"}
               </Button>

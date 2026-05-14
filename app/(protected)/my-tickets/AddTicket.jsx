@@ -620,9 +620,6 @@ const AddTicket = ({
                   borderRadius: 3,
                 }}
                 disabled={loading}
-                startIcon={
-                  loading && <CircularProgress size={22} color="inherit" />
-                }
               >
                 {loading ? "Loading..." : "Buat Tiket"}
               </Button>

@@ -181,9 +181,6 @@ const AddLocation = ({
                   textTransform: "none",
                 }}
                 disabled={loading}
-                startIcon={
-                  loading && <CircularProgress size={22} color="inherit" />
-                }
               >
                 {loading ? "Mengirim..." : "Submit Data"}
               </Button>

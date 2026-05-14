@@ -402,9 +402,6 @@ const OTPVerificationModal = ({
                 transform: "translateY(-1px)",
               },
             }}
-            startIcon={
-              loading ? <CircularProgress size={20} color="inherit" /> : null
-            }
           >
             {loading ? "Loading..." : "Verifikasi OTP"}
           </Button>

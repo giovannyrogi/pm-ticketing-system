@@ -210,9 +210,6 @@ const RejectTicketModal = ({
                   textTransform: "none",
                 }}
                 disabled={loading}
-                startIcon={
-                  loading && <CircularProgress size={22} color="inherit" />
-                }
               >
                 {loading ? "Mengirim..." : "Kirim Penolakan"}
               </Button>

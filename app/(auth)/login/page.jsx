@@ -234,9 +234,6 @@ const LoginPage = () => {
                 textTransform: "none",
               }}
               disabled={loading || redirecting}
-              startIcon={
-                loading && <CircularProgress size={22} color="inherit" />
-              }
             >
               {loading ? "Logging in..." : "Login"}
             </Button>
