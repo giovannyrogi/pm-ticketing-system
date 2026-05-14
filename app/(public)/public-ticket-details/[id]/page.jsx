@@ -16,6 +16,7 @@ import {
   Alert,
   Box,
   Button,
+  ButtonBase,
   Grid,
   Paper,
   Stack,
@@ -33,8 +34,6 @@ const PublicTicketDetail = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const showTicketStatus = false;
 
   useEffect(() => {
     const getTicketDetail = async () => {
@@ -128,52 +127,77 @@ const PublicTicketDetail = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
           mb: 2,
           gap: 1.5,
         }}
       >
+        {/* Button kembali ke beranda */}
+        <Box sx={{}}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => router.push("/")}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: 600,
+              fontSize: 12,
+            }}
+          >
+            Kembali
+          </Button>
+        </Box>
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 0.5,
+            gap: 2,
           }}
         >
-          <VisibilityOutlinedIcon sx={{ fontSize: 20 }} />
-          <FontStyle
+          <Box
             sx={{
-              fontSize: 12,
-              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
             }}
           >
-            {data.stats?.views || 0} Views
-          </FontStyle>
+            <VisibilityOutlinedIcon sx={{ fontSize: 20 }} />
+            <FontStyle
+              sx={{
+                fontSize: 12,
+                fontWeight: "500",
+              }}
+            >
+              {data.stats?.views || 0} Views
+            </FontStyle>
+          </Box>
+          {data && (
+            <PublicLikeButton
+              ticketId={data.id}
+              initialLikes={data.stats?.likes || 0}
+              initialLiked={data.stats?.liked || false}
+              isLoggedIn={Boolean(document.cookie.includes("dataUser"))}
+            />
+          )}
         </Box>
-        {data && (
-          <PublicLikeButton
-            ticketId={data.id}
-            initialLikes={data.stats?.likes || 0}
-            initialLiked={data.stats?.liked || false}
-            isLoggedIn={Boolean(document.cookie.includes("dataUser"))}
-          />
-        )}
       </Box>
 
       {/* <Button
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => router.push("/")}
-          sx={{
-            alignSelf: { xs: "flex-start", sm: "center" },
-            borderRadius: 2,
-            textTransform: "none",
-            fontFamily: "Poppins, sans-serif",
-            fontWeight: 700,
-          }}
-        >
-          Kembali ke Beranda
-        </Button> */}
+        variant="outlined"
+        startIcon={<ArrowBackIcon />}
+        onClick={() => router.push("/")}
+        sx={{
+          alignSelf: { xs: "flex-start", sm: "center" },
+          borderRadius: 2,
+          textTransform: "none",
+          fontFamily: "Poppins, sans-serif",
+          fontWeight: 700,
+        }}
+      >
+        Kembali ke Beranda
+      </Button> */}
 
       {errorMessage && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -221,10 +245,7 @@ const PublicTicketDetail = () => {
             </Grid>
           </Paper>
 
-          <TicketStatusInformation
-            data={data}
-            showTicketStatus={showTicketStatus}
-          />
+          <TicketStatusInformation data={data} />
 
           <TicketRatingSection data={data} readOnly />
 
@@ -239,7 +260,10 @@ const PublicTicketDetail = () => {
               overflow: "hidden",
             }}
           >
-            <TicketMessages messages={data.messages || []} />
+            <TicketMessages
+              messages={data.messages || []}
+              isPublic={data?.is_public}
+            />
           </Paper>
         </>
       )}

@@ -4,7 +4,7 @@ import FontStyle from "@/app/components/font-style/FontStyle";
 import { Box, Divider } from "@mui/material";
 import TicketMessageBubble from "./TicketMessageBubble";
 
-const TicketMessages = ({ messages = [], user }) => {
+const TicketMessages = ({ messages = [], isPublic = false }) => {
   return (
     <Box>
       <FontStyle fontSize={14} fontWeight="bold" sx={{ mb: 1 }}>
@@ -32,6 +32,7 @@ const TicketMessages = ({ messages = [], user }) => {
           <TicketMessageBubble
             key={msg.id}
             message={msg}
+            isPublic={isPublic}
             isAdmin={["admin", "superadmin", "staff"].includes(
               msg?.sender_role,
             )}

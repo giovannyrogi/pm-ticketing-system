@@ -203,7 +203,8 @@ const PublicTicketCard = ({ ticket }) => {
               textAlign: "right",
             }}
           >
-            {ticket.published_at_human || "-"} • {ticket.user?.name || "-"}
+            {ticket.published_at_human || "-"} 
+            {/* • {ticket.user?.name || "-"} */}
           </FontStyle>
         </Stack>
       </Box>

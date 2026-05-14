@@ -271,7 +271,7 @@ const Home = () => {
       <Stack spacing={1.5}>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        {loading ? undefined : tickets.length === 0 ? ( // </Box> //   <CircularProgress /> // > //   }} //     justifyContent: "center", //     alignItems: "center", //     display: "flex", //     py: 8, //   sx={{ // <Box
+        {loading ? undefined : tickets.length === 0 ? ( 
           <Paper
             elevation={0}
             sx={{
