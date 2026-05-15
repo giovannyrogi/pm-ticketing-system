@@ -42,7 +42,7 @@ const LoginPage = () => {
     setRedirecting(true);
     try {
       const response = await axios.post("/api/login", { username, password });
-      console.log("response login", response);
+      // console.log("response login", response);
 
       if (response?.data?.success) {
         setSnackbar({

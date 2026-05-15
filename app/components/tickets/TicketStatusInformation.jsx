@@ -10,7 +10,7 @@ import FontStyle from "@/app/components/font-style/FontStyle";
 import StatusTag from "../status-tag/StatusTag";
 import { color } from "framer-motion";
 
-const TicketStatusInformation = ({ data }) => {
+const TicketStatusInformation = ({ data, showTicketStatus }) => {
   const theme = useTheme();
 
   /**
@@ -138,7 +138,7 @@ const TicketStatusInformation = ({ data }) => {
         </Box>
 
         {/* PUBLISH STATUS */}
-        {!data?.is_public && (
+        {showTicketStatus && (
           <Box
             sx={{
               // mobile device display none
@@ -258,7 +258,7 @@ const TicketStatusInformation = ({ data }) => {
         )}
 
         {/* PUBLISH INFO */}
-        {isCompleted && !data?.is_public && (
+        {isCompleted && showTicketStatus && (
           <Grid size={12}>
             <Box
               sx={{

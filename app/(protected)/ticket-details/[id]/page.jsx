@@ -100,7 +100,7 @@ const TicketDetail = () => {
       if (showLoading) setLoading(true); /* untuk refresh */
 
       const res = await axios.get(`/api/ticket-details/${id}`);
-      console.log("response", res);
+      // console.log("response", res);
 
       setTimeout(() => {
         if (res.data.success) {
