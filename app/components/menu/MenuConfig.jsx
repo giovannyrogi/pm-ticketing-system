@@ -16,18 +16,18 @@ const MENU_CONFIG = [
     roles: ["admin", "superadmin"],
     submenu: [
       {
-        label: "Beranda",
-        value: "protected-home",
-        path: "/",
-        icon: <Icon icon="tabler:home-filled" fontSize="20px" />,
-        roles: ["admin", "superadmin"],
-        showIcon: true,
-      },
-      {
         label: "Dashboard",
         value: "dashboard",
         path: "/dashboard",
         icon: <Icon icon="svg-spinners:blocks-scale" fontSize="20px" />,
+        roles: ["admin", "superadmin"],
+        showIcon: true,
+      },
+      {
+        label: "Tiket Publik",
+        value: "protected-home",
+        path: "/",
+        icon: <Icon icon="mdi:ticket" fontSize="20px" />,
         roles: ["admin", "superadmin"],
         showIcon: true,
       },

@@ -49,6 +49,7 @@ const AccountPage = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [processingMessage, setProcessingMessage] = useState("");
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
@@ -146,6 +147,7 @@ const AccountPage = () => {
 
     try {
       setSubmitting(true);
+      setProcessingMessage("Memperbarui password...");
       const res = await axios.patch("/api/account/password", passwordForm);
 
       if (res.data.success) {
@@ -160,6 +162,7 @@ const AccountPage = () => {
       );
     } finally {
       setSubmitting(false);
+      setProcessingMessage("");
     }
   };
 
@@ -178,6 +181,7 @@ const AccountPage = () => {
 
     try {
       setSubmitting(true);
+      setProcessingMessage("Memperbarui email...");
       const res = await axios.patch("/api/account/email", emailForm);
 
       if (res.data.success) {
@@ -194,6 +198,7 @@ const AccountPage = () => {
       );
     } finally {
       setSubmitting(false);
+      setProcessingMessage("");
     }
   };
 
@@ -212,6 +217,7 @@ const AccountPage = () => {
 
     try {
       setSubmitting(true);
+      setProcessingMessage("Mengirim kode OTP...");
       const res = await axios.post("/api/account/phone/send-otp", phoneForm);
 
       if (res.data.success) {
@@ -246,6 +252,7 @@ const AccountPage = () => {
       showMessage(data?.message || "Gagal mengirim OTP", "error");
     } finally {
       setSubmitting(false);
+      setProcessingMessage("");
     }
   };
 
@@ -257,6 +264,7 @@ const AccountPage = () => {
 
     try {
       setSubmitting(true);
+      setProcessingMessage("Memverifikasi kode OTP...");
       const res = await axios.post("/api/account/phone/verify-otp", {
         phoneNumber: phoneForm.phoneNumber,
         otpCode,
@@ -278,6 +286,7 @@ const AccountPage = () => {
       );
     } finally {
       setSubmitting(false);
+      setProcessingMessage("");
     }
   };
 
@@ -471,7 +480,10 @@ const AccountPage = () => {
         onSecondaryAction={handleEditPhoneFromOtp}
       />
 
-      <LoadingBackdrop open={loading} message="Memuat profil..." />
+      <LoadingBackdrop
+        open={loading || submitting}
+        message={loading ? "Memuat profil..." : processingMessage}
+      />
       <Notification
         open={snackbar.open}
         message={snackbar.message}

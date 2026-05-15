@@ -97,7 +97,7 @@ const AccountHeader = () => {
             color: "#16A34A",
             border: "1px solid rgba(22,163,74,0.18)",
             fontFamily: "Poppins, sans-serif",
-            fontWeight: 800,
+            fontWeight: 600,
             fontSize: 12,
             "& .MuiChip-icon": {
               color: "#16A34A",

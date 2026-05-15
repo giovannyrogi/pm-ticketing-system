@@ -202,7 +202,7 @@ const AccountFormModal = ({
                 sx={{
                   borderRadius: 2,
                   fontFamily: "Poppins, sans-serif",
-                  fontWeight: 800,
+                  fontWeight: 600,
                   textTransform: "none",
                   color: actionColor,
                   borderColor: `${actionColor}55`,
@@ -222,7 +222,7 @@ const AccountFormModal = ({
                 sx={{
                   borderRadius: 2,
                   fontFamily: "Poppins, sans-serif",
-                  fontWeight: 800,
+                  fontWeight: 600,
                   textTransform: "none",
                   bgcolor: actionColor,
                   "&:hover": {
