@@ -16,12 +16,24 @@ const DashboardMetricCard = ({
   background = "#fff",
 }) => {
   // Comparison hanya dipakai oleh card yang memang butuh pembanding bulan lalu.
+  const previousNumber = Number(
+    String(previousValue ?? "")
+      .replace(/\./g, "")
+      .replace(",", "."),
+  );
+  const percentageNumber = Number(percentage);
   const hasComparison =
     previousValue !== undefined &&
     previousValue !== null &&
-    percentage !== undefined;
-  const isUp = Number(percentage) > 0;
-  const isFlat = Number(percentage) === 0;
+    previousValue !== "";
+  const canShowPercentage =
+    hasComparison &&
+    previousNumber > 0 &&
+    Number.isFinite(percentageNumber) &&
+    percentage !== null &&
+    percentage !== undefined &&
+    percentageNumber !== 0;
+  const isUp = percentageNumber > 0;
   const percentageColor = isUp ? "success.main" : "error.main";
 
   return (
@@ -72,7 +84,7 @@ const DashboardMetricCard = ({
           <FontStyle
             sx={{
               mt: 0.8,
-              fontSize: { xs: 24, md: 26 },
+              fontSize: { xs: 32, md: 35 },
               fontWeight: 800,
               lineHeight: 1.1,
               letterSpacing: 0,
@@ -116,7 +128,7 @@ const DashboardMetricCard = ({
           >
             <span>Bulan lalu: {previousValue}</span>
 
-            {!isFlat && (
+            {canShowPercentage && (
               <Box
                 component="span"
                 sx={{
@@ -130,7 +142,7 @@ const DashboardMetricCard = ({
                   icon={isUp ? "mdi:arrow-up" : "mdi:arrow-down"}
                   fontSize={14}
                 />
-                {Math.abs(Number(percentage) || 0)}%
+                {Math.abs(percentageNumber)}%
               </Box>
             )}
           </FontStyle>

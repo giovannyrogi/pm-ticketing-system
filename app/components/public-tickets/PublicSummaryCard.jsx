@@ -59,7 +59,7 @@ const PublicSummaryCard = ({
           <FontStyle
             sx={{
               mt: 0.8,
-              fontSize: { xs: 26, md: 28 },
+              fontSize: { xs: 32, md: 35 },
               fontWeight: 800,
               lineHeight: 1.1,
               letterSpacing: 0,

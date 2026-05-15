@@ -40,8 +40,7 @@ const getPercentChange = (current, previous) => {
   const previousValue = toNumber(previous);
 
   if (previousValue === 0) {
-    if (currentValue === 0) return 0;
-    return 100;
+    return null;
   }
 
   return Number(

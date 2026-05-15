@@ -51,41 +51,38 @@ const Dashboard = () => {
   });
 
   // Ambil semua data agregasi dashboard dari endpoint protected.
-  const getDashboard = useCallback(
-    async (showLoading = true) => {
-      try {
-        if (showLoading) {
-          setLoading(true);
-        }
+  const getDashboard = useCallback(async (showLoading = true) => {
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
 
-        const res = await axios.get("/api/dashboard/summary");
+      const res = await axios.get("/api/dashboard/summary");
 
-        if (res.data.success) {
-          setDashboard(res.data.data);
-          setRefreshCountdown(AUTO_REFRESH_SECONDS);
-        } else {
-          setDashboard(null);
-          setSnackbar({
-            open: true,
-            message: res.data.message || "Gagal memuat dashboard",
-            severity: "error",
-          });
-        }
-      } catch (err) {
+      if (res.data.success) {
+        setDashboard(res.data.data);
+        setRefreshCountdown(AUTO_REFRESH_SECONDS);
+      } else {
         setDashboard(null);
         setSnackbar({
           open: true,
-          message: err?.response?.data?.message || "Gagal memuat dashboard",
+          message: res.data.message || "Gagal memuat dashboard",
           severity: "error",
         });
-      } finally {
-        setTimeout(() => {
-          setLoading(false);
-        }, 700);
       }
-    },
-    [],
-  );
+    } catch (err) {
+      setDashboard(null);
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || "Gagal memuat dashboard",
+        severity: "error",
+      });
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 700);
+    }
+  }, []);
 
   // Load data hanya saat halaman pertama kali dibuka.
   useEffect(() => {
@@ -243,7 +240,7 @@ const Dashboard = () => {
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 3 }}>
                 <DashboardMetricCard
-                  title="Total Laporan"
+                  title="Total Tiket"
                   value={formatNumber(monthly.total?.current)}
                   helper={MONTHLY_HELPER}
                   previousValue={formatNumber(monthly.total?.previous)}
@@ -309,6 +306,59 @@ const Dashboard = () => {
                 </Grid>
               ))}
             </Grid>
+
+            {isSuperadmin && userSummary && (
+              <DashboardPanel
+                title="Ringkasan User"
+                subtitle="Khusus superadmin untuk melihat komposisi akun aktif"
+                icon="mdi:account-group"
+                iconColor="#7C3AED"
+                iconTone="rgba(124,58,237,0.12)"
+              >
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <DashboardMetricCard
+                      title="Total Akun"
+                      value={formatNumber(userSummary.total)}
+                      helper="Seluruh akun terdaftar"
+                      icon="mdi:account-group-outline"
+                      color="#2563EB"
+                      tone="rgba(37, 99, 235, 0.12)"
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <DashboardMetricCard
+                      title="Akun Aktif"
+                      value={formatNumber(userSummary.active)}
+                      helper="Dapat login dan menggunakan sistem"
+                      icon="mdi:account-check-outline"
+                      color="#16A34A"
+                      tone="rgba(22, 163, 74, 0.12)"
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <DashboardMetricCard
+                      title="User"
+                      value={formatNumber(userSummary.users)}
+                      helper="Pelapor layanan"
+                      icon="mdi:account-outline"
+                      color="#7C3AED"
+                      tone="rgba(124, 58, 237, 0.12)"
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <DashboardMetricCard
+                      title="Admin"
+                      value={formatNumber(userSummary.admins)}
+                      helper="Admin dan superadmin"
+                      icon="mdi:shield-account-outline"
+                      color={theme.palette.primary.main}
+                      tone="rgba(230, 9, 9, 0.1)"
+                    />
+                  </Grid>
+                </Grid>
+              </DashboardPanel>
+            )}
 
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, lg: 8 }}>
@@ -441,59 +491,6 @@ const Dashboard = () => {
                 </DashboardPanel>
               </Grid>
             </Grid>
-
-            {isSuperadmin && userSummary && (
-              <DashboardPanel
-                title="Ringkasan User"
-                subtitle="Khusus superadmin untuk melihat komposisi akun aktif"
-                icon="mdi:account-group"
-                iconColor="#7C3AED"
-                iconTone="rgba(124,58,237,0.12)"
-              >
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <DashboardMetricCard
-                      title="Total Akun"
-                      value={formatNumber(userSummary.total)}
-                      helper="Seluruh akun terdaftar"
-                      icon="mdi:account-group-outline"
-                      color="#2563EB"
-                      tone="rgba(37, 99, 235, 0.12)"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <DashboardMetricCard
-                      title="Akun Aktif"
-                      value={formatNumber(userSummary.active)}
-                      helper="Dapat login dan menggunakan sistem"
-                      icon="mdi:account-check-outline"
-                      color="#16A34A"
-                      tone="rgba(22, 163, 74, 0.12)"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <DashboardMetricCard
-                      title="User"
-                      value={formatNumber(userSummary.users)}
-                      helper="Pelapor layanan"
-                      icon="mdi:account-outline"
-                      color="#7C3AED"
-                      tone="rgba(124, 58, 237, 0.12)"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <DashboardMetricCard
-                      title="Admin"
-                      value={formatNumber(userSummary.admins)}
-                      helper="Admin dan superadmin"
-                      icon="mdi:shield-account-outline"
-                      color={theme.palette.primary.main}
-                      tone="rgba(230, 9, 9, 0.1)"
-                    />
-                  </Grid>
-                </Grid>
-              </DashboardPanel>
-            )}
           </Stack>
         </ConfigProvider>
       )}
