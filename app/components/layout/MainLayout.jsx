@@ -87,7 +87,7 @@ const MainLayout = ({
                 onCloseDrawer={onCloseDrawer}
                 onShowLoading={() => setLoadingBackdropOpen(true)}
                 onHideLoading={() => setLoadingBackdropOpen(false)}
-                setLoadingMessage={() => setLoadingMessage()}
+                setLoadingMessage={setLoadingMessage}
               />
             )}
 
