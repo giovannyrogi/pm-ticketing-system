@@ -34,6 +34,7 @@ const PublicTicketDetail = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const isPublic = true;
 
   useEffect(() => {
     const getTicketDetail = async () => {
@@ -262,7 +263,7 @@ const PublicTicketDetail = () => {
           >
             <TicketMessages
               messages={data.messages || []}
-              isPublic={data?.is_public}
+              isPublic={isPublic}
             />
           </Paper>
         </>

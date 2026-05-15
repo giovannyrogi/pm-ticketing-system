@@ -12,6 +12,7 @@ const TicketMessageBubble = ({
   isAdmin = false,
   isPublic = false,
 }) => {
+
   const theme = useTheme();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);

@@ -49,6 +49,7 @@ const TicketDetail = () => {
   const messagesEndRef = useRef(null);
   const previousMessageCountRef = useRef(0);
   const showTicketStatus = true;
+  const isPublic = false;
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -636,7 +637,7 @@ const TicketDetail = () => {
             <TicketMessages
               messages={messages}
               user={user}
-              isPublic={data?.is_public}
+              isPublic={isPublic}
             />
 
             {shouldShowReplyForm && (
