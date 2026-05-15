@@ -5,7 +5,7 @@ import StatusTag from "@/app/components/status-tag/StatusTag";
 import { Icon } from "@iconify/react";
 import { Box, Grid, useTheme } from "@mui/material";
 
-const TicketInformation = ({ data }) => {
+const TicketInformation = ({ data, isPublic }) => {
   const theme = useTheme();
 
   return (
@@ -25,7 +25,7 @@ const TicketInformation = ({ data }) => {
             </FontStyle>
 
             <FontStyle fontSize={13} fontWeight="500">
-              {data?.is_public
+              {isPublic
                 ? "Anonymous (Nama disembunyikan)"
                 : data?.user?.name || "-"}
             </FontStyle>

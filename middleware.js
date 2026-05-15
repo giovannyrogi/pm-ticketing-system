@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { ROUTE_ACCESS } from "./app/components/menu/routeAccess";
+import {
+  DEFAULT_ROUTE_BY_ROLE,
+  PUBLIC_ROUTE_PREFIXES,
+  ROUTE_ACCESS,
+} from "./app/components/menu/routeAccess";
 
 /**
  * ===============================
@@ -8,6 +12,28 @@ import { ROUTE_ACCESS } from "./app/components/menu/routeAccess";
  */
 
 const AUTH_ROUTES = ["/login", "/register"];
+/**
+ * ===============================
+ * FUNCTION GET DEFAULT ROUTE
+ * ===============================
+ * Menentukan halaman utama berdasarkan role user.
+ */
+const getDefaultRouteByRole = (role) => {
+  return DEFAULT_ROUTE_BY_ROLE[role] || "/";
+};
+
+/**
+ * ===============================
+ * FUNCTION CHECK PUBLIC ROUTE
+ * ===============================
+ * Route public menggunakan prefix agar nanti mudah menambah halaman public baru.
+ */
+const isPublicRoute = (pathname) => {
+  return PUBLIC_ROUTE_PREFIXES.some((route) => {
+    if (route === "/") return pathname === "/";
+    return pathname === route || pathname.startsWith(`${route}/`);
+  });
+};
 
 /**
  * ===============================
@@ -45,6 +71,8 @@ export function middleware(request) {
   }
 
   const isLoggedIn = !!user;
+  const matchedRoute = getMatchedRoute(pathname);
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   /**
    * ===============================
@@ -63,21 +91,13 @@ export function middleware(request) {
    * ===============================
    */
   if (!isLoggedIn) {
-    const isAuthRoute = AUTH_ROUTES.includes(pathname);
-
-    /**
-     * ===============================
-     * CHECK PROTECTED ROUTE
-     * ===============================
-     */
-    const matchedRoute = getMatchedRoute(pathname);
-
     /**
      * ===============================
      * ONLY PROTECT REGISTERED ROUTES
      * ===============================
+     * Halaman public tetap bebas akses, route protected wajib login.
      */
-    if (matchedRoute && !isAuthRoute) {
+    if (matchedRoute && !isAuthRoute && !isPublicRoute(pathname)) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
@@ -89,22 +109,26 @@ export function middleware(request) {
    */
   if (isLoggedIn) {
     // block login/register kalau sudah login
-    if (AUTH_ROUTES.includes(pathname)) {
-      return NextResponse.redirect(new URL("/", request.url));
+    if (isAuthRoute) {
+      return NextResponse.redirect(
+        new URL(getDefaultRouteByRole(user.role), request.url),
+      );
     }
 
     /**
      * ===============================
      * ROLE BASED ACCESS (DYNAMIC)
      * ===============================
+     * Kalau user login membuka route protected yang tidak sesuai role,
+     * arahkan ke halaman default role masing-masing.
      */
-    const matchedRoute = getMatchedRoute(pathname);
-
     if (matchedRoute) {
       const allowedRoles = matchedRoute.roles;
 
       if (!allowedRoles.includes(user.role)) {
-        return NextResponse.redirect(new URL("/", request.url));
+        return NextResponse.redirect(
+          new URL(getDefaultRouteByRole(user.role), request.url),
+        );
       }
     }
   }

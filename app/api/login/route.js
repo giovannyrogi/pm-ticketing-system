@@ -1,4 +1,5 @@
 import pool from "@/lib/dbConfig";
+import { DEFAULT_ROUTE_BY_ROLE } from "@/app/components/menu/routeAccess";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
@@ -65,6 +66,8 @@ export async function POST(req) {
     const response = NextResponse.json(
       {
         data: user,
+        // Frontend memakai redirectTo agar tujuan setelah login selalu mengikuti role.
+        redirectTo: DEFAULT_ROUTE_BY_ROLE[user.role] || "/",
         success: true,
         message: `Login berhasil`,
       },

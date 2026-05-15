@@ -570,7 +570,6 @@ const RegisterPage = () => {
                   fullWidth
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  autoFocus
                   required
                   disabled={loading || redirecting}
                   color="primary"
@@ -583,7 +582,6 @@ const RegisterPage = () => {
                   fullWidth
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  autoFocus
                   required
                   disabled={loading || redirecting}
                   color="primary"

@@ -36,6 +36,10 @@ const OTPVerificationModal = ({
   phoneNumber = "",
 
   otpLength = 6,
+
+  secondaryActionLabel = "",
+
+  onSecondaryAction,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -235,7 +239,7 @@ const OTPVerificationModal = ({
 
               gap: 1.2,
 
-              mb: remainingTime > 0 ? 0 : 3.5,
+              mb: secondaryActionLabel && onSecondaryAction ? 3.2 : remainingTime > 0 ? 2.2 : 3.5,
             }}
           >
             {remainingTime > 0 && (
@@ -273,7 +277,7 @@ const OTPVerificationModal = ({
               </FontStyle>
             ) : (
               <Box
-                onClick={onResend}
+                onClick={loading ? undefined : onResend}
                 sx={{
                   display: "flex",
                   alignItems: "center",
@@ -307,6 +311,43 @@ const OTPVerificationModal = ({
                   }}
                 >
                   Kirim Ulang OTP
+                </FontStyle>
+              </Box>
+            )}
+
+            {secondaryActionLabel && onSecondaryAction && (
+              <Box
+                onClick={loading ? undefined : onSecondaryAction}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                  background: "rgba(230,9,9,.08)",
+                  border: `1px solid ${theme.palette.primary.main}30`,
+                  color: theme.palette.primary.main,
+                  px: 2.2,
+                  py: 0.9,
+                  borderRadius: 999,
+                  transition: "all .2s ease",
+                  boxShadow: "0 6px 16px rgba(230,9,9,.08)",
+                  "&:hover": {
+                    background: "rgba(230,9,9,.13)",
+                    borderColor: `${theme.palette.primary.main}55`,
+                  },
+                }}
+              >
+                <Icon icon="solar:pen-bold" width={15} />
+
+                <FontStyle
+                  sx={{
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    fontFamily: "Poppins",
+                    color: "inherit",
+                  }}
+                >
+                  {secondaryActionLabel}
                 </FontStyle>
               </Box>
             )}

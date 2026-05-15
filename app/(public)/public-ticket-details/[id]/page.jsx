@@ -35,6 +35,7 @@ const PublicTicketDetail = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const isPublic = true;
+  const showTicketStatus = false;
 
   useEffect(() => {
     const getTicketDetail = async () => {
@@ -240,13 +241,16 @@ const PublicTicketDetail = () => {
           >
             <Grid container spacing={1}>
               <TicketHeader data={data} />
-              <TicketInformation data={data} />
+              <TicketInformation data={data} isPublic={isPublic} />
               <TicketDescription data={data} />
               <TicketAttachments data={data} isMobile={isMobile} />
             </Grid>
           </Paper>
 
-          <TicketStatusInformation data={data} />
+          <TicketStatusInformation
+            data={data}
+            showTicketStatus={showTicketStatus}
+          />
 
           <TicketRatingSection data={data} readOnly />
 

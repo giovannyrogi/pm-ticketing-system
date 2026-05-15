@@ -152,6 +152,29 @@ export async function POST(req) {
 
     /**
      * ===============================
+     * DUPLICATE PHONE NUMBER
+     * ===============================
+     */
+    const phoneRes = await pool.query(
+      `
+        SELECT id
+        FROM users
+        WHERE phone_number = $1
+      `,
+      [sanitizedPhoneNumber],
+    );
+
+    if (phoneRes.rows.length > 0) {
+      return NextResponse.json(
+        {
+          message: "Nomor telepon sudah digunakan",
+        },
+        { status: 400 },
+      );
+    }
+
+    /**
+     * ===============================
      * MAX ATTEMPT CHECK
      * ===============================
      */

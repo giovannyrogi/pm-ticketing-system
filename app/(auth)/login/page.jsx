@@ -52,7 +52,8 @@ const LoginPage = () => {
         });
 
         setTimeout(() => {
-          router.push("/");
+          // Gunakan redirect dari API agar role admin/superadmin masuk dashboard dan user masuk beranda.
+          router.push(response?.data?.redirectTo || "/");
           setLoading(false);
           setRedirecting(false);
         }, 1000);

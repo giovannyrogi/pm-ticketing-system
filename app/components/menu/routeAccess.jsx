@@ -1,3 +1,13 @@
+// Route publik boleh dibuka tanpa login. Tambahkan prefix baru di sini jika nanti ada halaman public baru.
+export const PUBLIC_ROUTE_PREFIXES = ["/", "/public-ticket-details"];
+
+// Route tujuan default setelah login atau saat user masuk ke halaman yang tidak sesuai role.
+export const DEFAULT_ROUTE_BY_ROLE = {
+  user: "/",
+  admin: "/dashboard",
+  superadmin: "/dashboard",
+};
+
 export const ROUTE_ACCESS = [
   {
     path: "/dashboard",
@@ -16,6 +26,10 @@ export const ROUTE_ACCESS = [
     roles: ["user"],
   },
   {
+    path: "/account",
+    roles: ["admin", "superadmin", "user"],
+  },
+  {
     path: "/users",
     roles: ["superadmin"],
   },
@@ -24,7 +38,7 @@ export const ROUTE_ACCESS = [
     roles: ["superadmin"],
   },
   {
-    path: "/categories",
+    path: "/category",
     roles: ["superadmin"],
   },
 ];

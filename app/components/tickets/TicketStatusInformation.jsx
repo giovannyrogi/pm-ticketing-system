@@ -258,7 +258,7 @@ const TicketStatusInformation = ({ data, showTicketStatus }) => {
         )}
 
         {/* PUBLISH INFO */}
-        {isCompleted && showTicketStatus && (
+        {showTicketStatus && isCompleted && (
           <Grid size={12}>
             <Box
               sx={{

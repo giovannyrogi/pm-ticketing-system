@@ -592,7 +592,7 @@ const TicketDetail = () => {
       >
         <Grid container spacing={1}>
           <TicketHeader data={data} />
-          <TicketInformation data={data} />
+          <TicketInformation data={data} isPublic={isPublic} />
           <TicketDescription data={data} />
           <TicketAttachments data={data} isMobile={isMobile} />
           {/* <TicketFooter data={data} /> */}
