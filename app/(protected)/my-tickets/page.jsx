@@ -23,7 +23,7 @@ import FontStyle from "@/app/components/font-style/FontStyle";
 import { FilterFilled } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import ActionConfirmationModal from "@/app/components/modal/ActionConfirmationModal";
-import TicketListHeader from "@/app/components/ticket-list/TicketListHeader";
+import PageHeader from "@/app/components/page-header/PageHeader";
 
 const MyTickets = () => {
   const router = useRouter();
@@ -407,7 +407,7 @@ const MyTickets = () => {
         }}
       >
         <Stack spacing={{ xs: 1.4, md: 2.2 }}>
-          <TicketListHeader
+          <PageHeader
             badge="Ruang Laporan"
             title="Tiket Saya"
             description="Pantau laporan yang Anda buat, cek status penanganan, dan lanjutkan percakapan dengan admin PMCare."

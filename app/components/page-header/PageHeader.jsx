@@ -5,12 +5,13 @@ import { Icon } from "@iconify/react";
 import { Box, Chip, Paper, Stack } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 
-const TicketListHeader = ({
-  badge = "Pusat Tiket",
-  title = "Daftar Tiket",
-  description = "Pantau antrean, status penanganan, dan riwayat laporan dalam satu tampilan yang mudah dipindai.",
-  icon = "mdi:clipboard-text-search-outline",
+const PageHeader = ({
+  badge = "Pusat Layanan",
+  title = "Halaman",
+  description = "",
+  icon = "mdi:view-dashboard-outline",
   iconColor = "#2563EB",
+  action = null,
 }) => {
   const theme = useTheme();
 
@@ -33,7 +34,7 @@ const TicketListHeader = ({
         alignItems={{ xs: "flex-start", md: "center" }}
         justifyContent="space-between"
       >
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Chip
             label={badge}
             size="small"
@@ -59,39 +60,43 @@ const TicketListHeader = ({
           >
             {title}
           </FontStyle>
-          <FontStyle
-            sx={{
-              mt: 0.6,
-              fontSize: 12,
-              fontWeight: 600,
-              color: "rgba(35,35,35,0.62)",
-              letterSpacing: 0,
-              lineHeight: 1.65,
-              maxWidth: 760,
-            }}
-          >
-            {description}
-          </FontStyle>
+          {description && (
+            <FontStyle
+              sx={{
+                mt: 0.6,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "rgba(35,35,35,0.62)",
+                letterSpacing: 0,
+                lineHeight: 1.65,
+                maxWidth: 760,
+              }}
+            >
+              {description}
+            </FontStyle>
+          )}
         </Box>
 
-        <Box
-          sx={{
-            width: { xs: 52, md: 72 },
-            height: { xs: 52, md: 72 },
-            borderRadius: "50%",
-            bgcolor: alpha(iconColor, 0.09),
-            color: iconColor,
-            border: `1px solid ${alpha(iconColor, 0.14)}`,
-            display: { xs: "none", sm: "grid" },
-            placeItems: "center",
-            flexShrink: 0,
-          }}
-        >
-          <Icon icon={icon} fontSize={34} />
-        </Box>
+        {action || (
+          <Box
+            sx={{
+              width: { xs: 52, md: 72 },
+              height: { xs: 52, md: 72 },
+              borderRadius: "50%",
+              bgcolor: alpha(iconColor, 0.09),
+              color: iconColor,
+              border: `1px solid ${alpha(iconColor, 0.14)}`,
+              display: { xs: "none", sm: "grid" },
+              placeItems: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Icon icon={icon} fontSize={34} />
+          </Box>
+        )}
       </Stack>
     </Paper>
   );
 };
 
-export default TicketListHeader;
+export default PageHeader;

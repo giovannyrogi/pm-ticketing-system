@@ -20,7 +20,7 @@ import { useUser } from "@/app/utils/useUser";
 import { Icon } from "@iconify/react";
 import FontStyle from "@/app/components/font-style/FontStyle";
 import StatusTag from "@/app/components/status-tag/StatusTag";
-import TicketListHeader from "@/app/components/ticket-list/TicketListHeader";
+import PageHeader from "@/app/components/page-header/PageHeader";
 import { FilterFilled } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 
@@ -458,7 +458,13 @@ const TicketList = () => {
         }}
       >
         <Stack spacing={{ xs: 1.4, md: 2.2 }}>
-          <TicketListHeader />
+          <PageHeader
+            badge="Pusat Tiket"
+            title="Daftar Tiket"
+            description="Pantau antrean, status penanganan, dan riwayat laporan dalam satu tampilan yang mudah dipindai."
+            icon="mdi:clipboard-text-search-outline"
+            iconColor="#2563EB"
+          />
 
           <Paper
             elevation={2}
