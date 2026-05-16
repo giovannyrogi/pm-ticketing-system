@@ -1,279 +1,269 @@
 "use client";
-import { Box, Button, Paper, Typography, useTheme } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import {
-  Table,
-  ConfigProvider,
-  theme as antdTheme,
-  Input,
-  Space,
-  Button as AntdButton,
-  Tag,
-} from "antd";
-import moment from "moment";
-import { Icon } from "@iconify/react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Box, Stack, useMediaQuery, useTheme } from "@mui/material";
+import { ConfigProvider, theme as antdTheme } from "antd";
 import axios from "axios";
-import Notification from "@/app/components/notification/Notification";
+import PageHeader from "@/app/components/page-header/PageHeader";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
-import AddCategory from "./AddCategory";
-import EditCategory from "./EditCategory";
-import DeleteCategory from "./DeleteLocation";
+import Notification from "@/app/components/notification/Notification";
+import CategoriesManagementPanel from "./CategoriesManagementPanel";
+import CategoryFormModal from "./CategoryFormModal";
+import DeleteCategoryModal from "./DeleteCategoryModal";
+import { emptyCategoryForm, getCategoryFormValues } from "./constants";
+import { validateCategoryForm } from "./categoryFormConfig";
 
 const Category = () => {
-  const [categories, setCategories] = useState([]);
   const theme = useTheme();
-  const [searchText, setSearchText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [openAddModal, setOpenAddModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [selectedData, setSelectedData] = useState(null);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(5);
+  const [loading, setLoading] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState("create");
+  const [formValues, setFormValues] = useState(emptyCategoryForm);
+  const [formErrors, setFormErrors] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const getDatacategories = async () => {
+  // Satu helper notifikasi menjaga pesan sukses/error tetap konsisten.
+  const showSnackbar = useCallback((message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  }, []);
+
+  // Ambil ulang data setelah halaman dibuka dan setiap proses CRUD selesai.
+  const getCategoriesData = useCallback(async () => {
     setLoading(true);
+
     try {
       const response = await axios.get("/api/category/get-category");
-      // console.log("categories", response);
-      setCategories(response.data.data);
+      setCategories(response.data.data || []);
+    } catch (error) {
+      showSnackbar(
+        error?.response?.data?.message || "Gagal mengambil data kategori.",
+        "error",
+      );
+    } finally {
       setTimeout(() => {
         setLoading(false);
       }, 1000);
+    }
+  }, [showSnackbar]);
+
+  useEffect(() => {
+    getCategoriesData();
+  }, [getCategoriesData]);
+
+  // Filter client-side menjaga pencarian tetap cepat tanpa mengubah API lama.
+  const filteredCategories = useMemo(() => {
+    const keyword = search.toLowerCase();
+
+    return categories.filter((item) =>
+      item.category_name?.toLowerCase().includes(keyword),
+    );
+  }, [categories, search]);
+
+  const openCreateModal = () => {
+    setFormMode("create");
+    setSelectedCategory(null);
+    setFormValues(emptyCategoryForm);
+    setFormErrors({});
+    setFormOpen(true);
+  };
+
+  const openEditModal = (category) => {
+    setFormMode("edit");
+    setSelectedCategory(category);
+    setFormValues(getCategoryFormValues("edit", category));
+    setFormErrors({});
+    setFormOpen(true);
+  };
+
+  const openDeleteModal = (category) => {
+    setSelectedCategory(category);
+    setDeleteOpen(true);
+  };
+
+  const handleCategoryFieldChange = (name, value) => {
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  // Payload dan endpoint mengikuti alur category lama agar backend tidak berubah.
+  const submitCategoryForm = async () => {
+    const nextErrors = validateCategoryForm(formValues);
+    setFormErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setLoading(true);
+    try {
+      const payload = {
+        category_name: formValues.categoryName,
+      };
+
+      const request =
+        formMode === "edit"
+          ? axios.put(
+              `/api/category/update-category/${selectedCategory?.id}`,
+              payload,
+            )
+          : axios.post("/api/category/add-category", payload);
+
+      const response = await request;
+
+      if (response.data.success) {
+        showSnackbar(
+          response.data.message ||
+            (formMode === "edit"
+              ? "Category berhasil diubah!"
+              : "Category berhasil ditambahkan!"),
+          formMode === "edit" ? "info" : "success",
+        );
+        setFormOpen(false);
+        setFormValues(emptyCategoryForm);
+        await getCategoriesData();
+      } else {
+        showSnackbar(
+          response.data.message ||
+            (formMode === "edit"
+              ? "Gagal mengubah Category."
+              : "Gagal menambah Category."),
+          "error",
+        );
+      }
     } catch (error) {
-      console.log("error", error);
+      showSnackbar(
+        error?.response?.data?.message ||
+          (formMode === "edit"
+            ? "Terjadi error saat mengubah Category."
+            : "Terjadi error saat menambah Category."),
+        "error",
+      );
+    } finally {
       setTimeout(() => {
         setLoading(false);
       }, 1000);
     }
   };
 
-  useEffect(() => {
-    getDatacategories();
-  }, []);
+  const submitDeleteCategory = async () => {
+    if (!selectedCategory?.id) return;
 
-  const filteredData = categories.filter((item) =>
-    item.category_name?.toLowerCase().includes(searchText.toLowerCase()),
-  );
+    setLoading(true);
+    try {
+      const response = await axios.delete(
+        `/api/category/delete-category/${selectedCategory.id}`,
+      );
 
-  const onChange = (pagination, filters, sorter, extra) => {
+      if (response?.data?.success) {
+        showSnackbar(response.data?.message || "Kategori berhasil dihapus!", "info");
+        setDeleteOpen(false);
+        await getCategoriesData();
+      } else {
+        showSnackbar(
+          response?.data?.message || "Gagal menghapus kategori.",
+          "error",
+        );
+      }
+    } catch (error) {
+      showSnackbar(
+        error?.response?.data?.message ||
+          "Terjadi error saat menghapus kategori.",
+        "error",
+      );
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+    }
+  };
+
+  const onTableChange = (pagination) => {
     if (pagination.pageSize !== pageSize) {
       setPageSize(pagination.pageSize);
     }
   };
 
-  const handleEdit = (record) => {
-    // console.log("edit record", record);
-    setSelectedData(record);
-    setOpenEditModal(true);
-  };
-
-  const handleDelete = (record) => {
-    // console.log("delete record", record);
-    setSelectedData(record);
-    setOpenDeleteModal(true);
-  };
-
-  // Utility untuk filter dinamis
-  function generateFilters(data, key) {
-    return [...new Set(data.map((item) => item[key]))]
-      .filter((val) => val !== undefined && val !== null)
-      .map((val) => ({ text: val, value: val }));
-  }
-
-  function createOnFilter(key) {
-    return (value, record) => record[key] === value;
-  }
-
-  const categoryFilters = generateFilters(categories, "category_name");
-  const cityFilters = generateFilters(categories, "city");
-  const statusFilters = [
-    { text: "Aktif", value: true },
-    { text: "Tidak Aktif", value: false },
-  ];
-
-  const columns = [
-    {
-      title: "Nama Kategori",
-      dataIndex: "category_name",
-      filters: categoryFilters,
-      onFilter: createOnFilter("category_name"),
-      filterSearch: true,
-      sorter: (a, b) => a.category_name.localeCompare(b.category_name),
-      sortDirections: ["ascend", "descend"],
-      render: (text, record) => (
-        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
-          {record.category_name}
-        </Typography>
-      ),
-      width: 200,
-    },
-    {
-      title: "Actions",
-      key: "action",
-      align: "center",
-      width: 100,
-      fixed: "right",
-      render: (text, record) => (
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Button
-            size="small"
-            variant={"contained"}
-            color="info"
-            onClick={() => handleEdit(record)}
-            sx={{ minWidth: 0, px: 1 }}
-          >
-            <Icon icon="line-md:edit" fontSize={18} />
-          </Button>
-          <Button
-            size="small"
-            variant={"contained"}
-            color="error"
-            onClick={() => handleDelete(record)}
-            sx={{ minWidth: 0, px: 1 }}
-          >
-            <Icon icon="line-md:close-circle" fontSize={18} />
-          </Button>
-        </Box>
-      ),
-    },
-  ];
-
   return (
-    <Box sx={{ width: "100%", height: "100%", minHeight: "100%", p: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          transition: "all 0.3s",
-          mb: 4,
-          mt: 4,
-        }}
-      >
-        <Button
-          variant={"contained"}
-          onClick={() => setOpenAddModal(true)}
-          sx={{
-            textTransform: "none",
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 1,
-            fontWeight: "bold",
-          }}
-        >
-          Add Category
-          <Icon icon="mdi:category-plus" fontSize="20px" />
-        </Button>
-      </Box>
-
+    <Box sx={{ p: { xs: 1.5, md: 2 }, pb: { xs: 3, md: 4 } }}>
+      <LoadingBackdrop message="Loading..." open={loading} />
       <ConfigProvider
         theme={{
           algorithm: antdTheme.defaultAlgorithm,
           token: {
-            colorPrimary: theme.palette.primary.main, // warna utama (angka aktif, outline, dsb)
-            // colorText: theme.palette.text.primary, // warna teks default
-            // colorBgContainer: theme.palette.background.default, // background tabel
+            colorPrimary: theme.palette.primary.main,
+            borderRadius: 10,
+            fontFamily: "Poppins, sans-serif",
+          },
+          components: {
+            Table: {
+              headerBg: "#EF0B0B",
+              headerColor: "#fff",
+              headerSplitColor: "rgba(255,255,255,0.38)",
+              rowHoverBg: "rgba(239,11,11,0.035)",
+              borderColor: "rgba(15,23,42,0.08)",
+            },
           },
         }}
       >
-        <Paper
-          elevation={6}
-          sx={{
-            p:
-              filteredData.length > 0
-                ? "10px 15px 0px 15px"
-                : "10px 15px 10px 15px",
-            width: "100%",
-            bgcolor: "background.default",
-            overflowX: "auto",
-          }}
-        >
-          <Space.Compact
-            style={{ width: 250, marginBottom: 20, marginTop: 10 }}
-          >
-            <Input
-              placeholder="Cari Data..."
-              allowClear
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
-            <AntdButton
-              type="primary"
-              icon={<Icon icon="line-md:search-twotone" fontSize={20} />}
-              onClick={() => {
-                /* bisa tambahkan aksi pencarian manual di sini */
-              }}
-            />
-          </Space.Compact>
-          <Table
-            rowKey="id"
-            key={"id"}
-            columns={columns}
-            dataSource={filteredData}
-            onChange={onChange}
-            showSorterTooltip={{ target: "sorter-icon" }}
-            scroll={{ x: "max-content", y: 420 }}
-            pagination={{
-              pageSize: pageSize,
-              showSizeChanger: true,
-              pageSizeOptions: [5, 10, 20, 50],
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} dari ${total} data`,
-            }}
+        <Stack spacing={{ xs: 1.4, md: 2.2 }}>
+          <PageHeader
+            badge="Data Master"
+            title="Manajemen Kategori"
+            description="Kelola daftar kategori laporan yang tersedia untuk tiket dan publikasi PMCare."
+            icon="tabler:category-filled"
+            iconColor="#2563EB"
           />
-        </Paper>
+
+          <CategoriesManagementPanel
+            filteredCategories={filteredCategories}
+            isMobile={isMobile}
+            loading={loading}
+            onCreate={openCreateModal}
+            onEdit={openEditModal}
+            onDelete={openDeleteModal}
+            onTableChange={onTableChange}
+            pageSize={pageSize}
+            search={search}
+            setSearch={setSearch}
+            theme={theme}
+          />
+        </Stack>
       </ConfigProvider>
-      <AddCategory
-        open={openAddModal}
-        onClose={() => setOpenAddModal(false)}
-        loadingTrue={() => setLoading(true)}
-        loadingFalse={() => setLoading(false)}
+
+      <CategoryFormModal
+        open={formOpen}
+        mode={formMode}
+        values={formValues}
+        errors={formErrors}
         loading={loading}
-        getDatacategories={getDatacategories}
-        onNotify={(notif) => setSnackbar(notif)}
+        theme={theme}
+        onClose={() => setFormOpen(false)}
+        onChange={handleCategoryFieldChange}
+        onSubmit={submitCategoryForm}
       />
-      <EditCategory
-        open={openEditModal}
-        onClose={() => setOpenEditModal(false)}
-        loadingTrue={() => setLoading(true)}
-        loadingFalse={() => setLoading(false)}
+
+      <DeleteCategoryModal
+        open={deleteOpen}
+        selectedCategory={selectedCategory}
         loading={loading}
-        getDatacategories={getDatacategories}
-        onNotify={(notif) => setSnackbar(notif)}
-        selectedData={selectedData}
+        onClose={() => setDeleteOpen(false)}
+        onSubmit={submitDeleteCategory}
+        titleColor={theme.palette.error.main}
       />
-      <DeleteCategory
-        open={openDeleteModal}
-        onClose={() => setOpenDeleteModal(false)}
-        loadingTrue={() => setLoading(true)}
-        loadingFalse={() => setLoading(false)}
-        loading={loading}
-        getDatacategories={getDatacategories}
-        onNotify={(notif) => setSnackbar(notif)}
-        selectedData={selectedData}
-      />
-      <LoadingBackdrop message="Loading..." open={loading} />
-      {/* Snackbar notification */}
+
       <Notification
         open={snackbar.open}
         message={snackbar.message}
         severity={snackbar.severity}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       />
     </Box>
   );

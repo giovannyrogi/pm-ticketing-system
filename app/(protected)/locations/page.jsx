@@ -1,283 +1,275 @@
 "use client";
-import { Box, Button, Paper, Typography, useTheme } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import {
-  Table,
-  ConfigProvider,
-  theme as antdTheme,
-  Input,
-  Space,
-  Button as AntdButton,
-  Tag,
-} from "antd";
-import moment from "moment";
-import { Icon } from "@iconify/react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Box, Stack, useMediaQuery, useTheme } from "@mui/material";
+import { ConfigProvider, theme as antdTheme } from "antd";
 import axios from "axios";
-import Notification from "@/app/components/notification/Notification";
+import PageHeader from "@/app/components/page-header/PageHeader";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
-import AddLocation from "./AddLocation";
-import EditLocation from "./EditLocation";
-import DeleteLocation from "./DeleteLocation";
+import Notification from "@/app/components/notification/Notification";
+import DeleteLocationModal from "./DeleteLocationModal";
+import LocationFormModal from "./LocationFormModal";
+import LocationsManagementPanel from "./LocationsManagementPanel";
+import { emptyLocationForm, getLocationFormValues } from "./constants";
+import { validateLocationForm } from "./locationFormConfig";
 
 const Locations = () => {
-  const [dataLocations, setDataLocations] = useState([]);
   const theme = useTheme();
-  const [searchText, setSearchText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [openAddModal, setOpenAddModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [selectedData, setSelectedData] = useState(null);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [locations, setLocations] = useState([]);
+  const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(5);
+  const [loading, setLoading] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState("create");
+  const [formValues, setFormValues] = useState(emptyLocationForm);
+  const [formErrors, setFormErrors] = useState({});
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const getLocationsData = async () => {
+  // Satu helper notifikasi menjaga pesan sukses/error tetap konsisten.
+  const showSnackbar = useCallback((message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  }, []);
+
+  // Ambil data locations setelah halaman dibuka dan setelah proses CRUD selesai.
+  const getLocationsData = useCallback(async () => {
     setLoading(true);
+
     try {
       const response = await axios.get("/api/locations/get-locations");
-      // console.log("locations", response);
-      setDataLocations(response.data.data);
+      setLocations(response.data.data || []);
+    } catch (error) {
+      showSnackbar(
+        error?.response?.data?.message || "Gagal mengambil data lokasi.",
+        "error",
+      );
+    } finally {
       setTimeout(() => {
         setLoading(false);
       }, 1000);
+    }
+  }, [showSnackbar]);
+
+  useEffect(() => {
+    getLocationsData();
+  }, [getLocationsData]);
+
+  // Filter client-side menjaga pencarian terasa cepat tanpa request ulang.
+  const filteredLocations = useMemo(() => {
+    const keyword = search.toLowerCase();
+
+    return locations.filter(
+      (item) =>
+        item.location_name?.toLowerCase().includes(keyword) ||
+        item.address?.toLowerCase().includes(keyword),
+    );
+  }, [locations, search]);
+
+  const openCreateModal = () => {
+    setFormMode("create");
+    setSelectedLocation(null);
+    setFormValues(emptyLocationForm);
+    setFormErrors({});
+    setFormOpen(true);
+  };
+
+  const openEditModal = (location) => {
+    setFormMode("edit");
+    setSelectedLocation(location);
+    setFormValues(getLocationFormValues("edit", location));
+    setFormErrors({});
+    setFormOpen(true);
+  };
+
+  const openDeleteModal = (location) => {
+    setSelectedLocation(location);
+    setDeleteOpen(true);
+  };
+
+  const handleLocationFieldChange = (name, value) => {
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  // Payload dan endpoint disamakan dengan alur lama agar backend tidak berubah.
+  const submitLocationForm = async () => {
+    const nextErrors = validateLocationForm(formValues);
+    setFormErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setLoading(true);
+    try {
+      const payload = {
+        location_name: formValues.locationName,
+        address: formValues.address,
+      };
+
+      const request =
+        formMode === "edit"
+          ? axios.put(
+              `/api/locations/update-location/${selectedLocation?.id}`,
+              payload,
+            )
+          : axios.post("/api/locations/add-location", payload);
+
+      const response = await request;
+
+      if (response.data.success) {
+        showSnackbar(
+          response.data.message ||
+            (formMode === "edit"
+              ? "Lokasi berhasil diubah!"
+              : "Lokasi berhasil ditambahkan!"),
+          formMode === "edit" ? "info" : "success",
+        );
+        setFormOpen(false);
+        setFormValues(emptyLocationForm);
+        await getLocationsData();
+      } else {
+        showSnackbar(
+          response.data.message ||
+            (formMode === "edit"
+              ? "Gagal mengubah lokasi."
+              : "Gagal menambah lokasi."),
+          "error",
+        );
+      }
     } catch (error) {
-      console.log("error", error);
+      showSnackbar(
+        error?.response?.data?.message ||
+          (formMode === "edit"
+            ? "Terjadi error saat mengubah lokasi."
+            : "Terjadi error saat menambah lokasi."),
+        "error",
+      );
+    } finally {
       setTimeout(() => {
         setLoading(false);
       }, 1000);
     }
   };
 
-  useEffect(() => {
-    getLocationsData();
-  }, []);
+  const submitDeleteLocation = async () => {
+    if (!selectedLocation?.id) return;
 
-  const filteredData = dataLocations.filter(
-    (item) =>
-      item.location_name?.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.address?.toLowerCase().includes(searchText.toLowerCase()) 
-  );
+    setLoading(true);
+    try {
+      const response = await axios.delete(
+        `/api/locations/delete-location/${selectedLocation.id}`,
+      );
 
-  const onChange = (pagination, filters, sorter, extra) => {
+      if (response?.data?.success) {
+        showSnackbar(
+          response.data?.message || "Lokasi berhasil dihapus!",
+          "info",
+        );
+        setDeleteOpen(false);
+        await getLocationsData();
+      } else {
+        showSnackbar(
+          response?.data?.message || "Gagal menghapus lokasi.",
+          "error",
+        );
+      }
+    } catch (error) {
+      showSnackbar(
+        error?.response?.data?.message ||
+          "Terjadi error saat menghapus lokasi.",
+        "error",
+      );
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+    }
+  };
+
+  const onTableChange = (pagination) => {
     if (pagination.pageSize !== pageSize) {
       setPageSize(pagination.pageSize);
     }
   };
 
-  const handleEdit = (record) => {
-    // console.log("edit record", record);
-    setSelectedData(record);
-    setOpenEditModal(true);
-  };
-
-  const handleDelete = (record) => {
-    // console.log("delete record", record);
-    setSelectedData(record);
-    setOpenDeleteModal(true);
-  };
-
-  // Utility untuk filter dinamis
-  function generateFilters(data, key) {
-    return [...new Set(data.map((item) => item[key]))]
-      .filter((val) => val !== undefined && val !== null)
-      .map((val) => ({ text: val, value: val }));
-  }
-
-  function createOnFilter(key) {
-    return (value, record) => record[key] === value;
-  }
-
-  const nameFilters = generateFilters(dataLocations, "location_name");
-  const cityFilters = generateFilters(dataLocations, "city");
-  const statusFilters = [
-    { text: "Aktif", value: true },
-    { text: "Tidak Aktif", value: false },
-  ];
-
-  const columns = [
-    {
-      title: "Nama Lokasi",
-      dataIndex: "location_name",
-      filters: nameFilters,
-      onFilter: createOnFilter("location_name"),
-      filterSearch: true,
-      sorter: (a, b) => a.location_name.localeCompare(b.location_name),
-      sortDirections: ["ascend", "descend"],
-      render: (text, record) => (
-        <Typography sx={{ fontWeight: "bold", fontSize: "12px" }}>
-          {record.location_name}
-        </Typography>
-      ),
-      width: 200,
-    },
-    {
-      title: "Alamat",
-      dataIndex: "address",
-      // onFilter: (value, record) => record.address === value,
-      // sorter: (a, b) => a.address.localeCompare(b.address),
-      // sortDirections: ["ascend", "descend"],
-      width: 150,
-    },
-    {
-      title: "Actions",
-      key: "action",
-      align: "center",
-      width: 100,
-      fixed: "right",
-      render: (text, record) => (
-        <Box sx={{ display: "flex", gap: 1, justifyContent: "center", alignItems: "center" }}>
-          <Button
-            size="small"
-            variant={"contained"}
-            color="info"
-            onClick={() => handleEdit(record)}
-            sx={{ minWidth: 0, px: 1 }}
-          >
-            <Icon icon="line-md:edit" fontSize={18} />
-          </Button>
-          <Button
-            size="small"
-            variant={"contained"}
-            color="error"
-            onClick={() => handleDelete(record)}
-            sx={{ minWidth: 0, px: 1 }}
-          >
-            <Icon icon="line-md:close-circle" fontSize={18} />
-          </Button>
-        </Box>
-      ),
-    },
-  ];
-
   return (
-    <Box sx={{ width: "100%", height: "100%", minHeight: "100%", p: 2 }}>
-
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          transition: "all 0.3s",
-          mb: 4,
-          mt: 4,
-        }}
-      >
-        <Button
-          variant={"contained"}
-          onClick={() => setOpenAddModal(true)}
-          sx={{
-            textTransform: "none",
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 1,
-            fontWeight: "bold",
-          }}
-        >
-          Add Locations
-          <Icon icon="line-md:map-marker-plus-twotone" fontSize="20px" />
-        </Button>
-      </Box>
-
+    <Box sx={{ p: { xs: 1.5, md: 2 }, pb: { xs: 3, md: 4 } }}>
+      <LoadingBackdrop message="Loading..." open={loading} />
       <ConfigProvider
         theme={{
           algorithm: antdTheme.defaultAlgorithm,
           token: {
-            colorPrimary: theme.palette.primary.main, // warna utama (angka aktif, outline, dsb)
-            // colorText: theme.palette.text.primary, // warna teks default
-            // colorBgContainer: theme.palette.background.default, // background tabel
+            colorPrimary: theme.palette.primary.main,
+            borderRadius: 10,
+            fontFamily: "Poppins, sans-serif",
+          },
+          components: {
+            Table: {
+              headerBg: "#EF0B0B",
+              headerColor: "#fff",
+              headerSplitColor: "rgba(255,255,255,0.38)",
+              rowHoverBg: "rgba(239,11,11,0.035)",
+              borderColor: "rgba(15,23,42,0.08)",
+            },
           },
         }}
       >
-        <Paper
-          elevation={6}
-          sx={{
-            p:
-              filteredData.length > 0
-                ? "10px 15px 0px 15px"
-                : "10px 15px 10px 15px",
-            width: "100%",
-            bgcolor: "background.default",
-            overflowX: "auto",
-          }}
-        >
-          <Space.Compact
-            style={{ width: 250, marginBottom: 20, marginTop: 10 }}
-          >
-            <Input
-              placeholder="Cari Data..."
-              allowClear
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
-            <AntdButton
-              type="primary"
-              icon={<Icon icon="line-md:search-twotone" fontSize={20} />}
-              onClick={() => {
-                /* bisa tambahkan aksi pencarian manual di sini */
-              }}
-            />
-          </Space.Compact>
-          <Table
-            rowKey="id"
-            key={"id"}
-            columns={columns}
-            dataSource={filteredData}
-            onChange={onChange}
-            showSorterTooltip={{ target: "sorter-icon" }}
-            scroll={{ x: "max-content", y: 420 }}
-            pagination={{
-              pageSize: pageSize,
-              showSizeChanger: true,
-              pageSizeOptions: [5, 10, 20, 50],
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} dari ${total} data`,
-            }}
+        <Stack spacing={{ xs: 1.4, md: 2.2 }}>
+          <PageHeader
+            badge="Data Master"
+            title="Manajemen Lokasi"
+            description="Kelola daftar lokasi pasar dan area layanan yang tersedia untuk laporan PMCare."
+            icon="mdi:map-marker-multiple-outline"
+            iconColor="#16A34A"
           />
-        </Paper>
+
+          <LocationsManagementPanel
+            filteredLocations={filteredLocations}
+            isMobile={isMobile}
+            loading={loading}
+            onCreate={openCreateModal}
+            onEdit={openEditModal}
+            onDelete={openDeleteModal}
+            onTableChange={onTableChange}
+            pageSize={pageSize}
+            search={search}
+            setSearch={setSearch}
+            theme={theme}
+          />
+        </Stack>
       </ConfigProvider>
-      <AddLocation
-        open={openAddModal}
-        onClose={() => setOpenAddModal(false)}
-        loadingTrue={() => setLoading(true)}
-        loadingFalse={() => setLoading(false)}
+
+      <LocationFormModal
+        open={formOpen}
+        mode={formMode}
+        values={formValues}
+        errors={formErrors}
         loading={loading}
-        getLocationsData={getLocationsData}
-        onNotify={(notif) => setSnackbar(notif)}
+        theme={theme}
+        onClose={() => setFormOpen(false)}
+        onChange={handleLocationFieldChange}
+        onSubmit={submitLocationForm}
       />
-      <EditLocation
-        open={openEditModal}
-        onClose={() => setOpenEditModal(false)}
-        loadingTrue={() => setLoading(true)}
-        loadingFalse={() => setLoading(false)}
+
+      <DeleteLocationModal
+        open={deleteOpen}
+        selectedLocation={selectedLocation}
         loading={loading}
-        getLocationsData={getLocationsData}
-        onNotify={(notif) => setSnackbar(notif)}
-        selectedData={selectedData}
+        onClose={() => setDeleteOpen(false)}
+        onSubmit={submitDeleteLocation}
+        titleColor={theme.palette.error.main}
       />
-      <DeleteLocation
-        open={openDeleteModal}
-        onClose={() => setOpenDeleteModal(false)}
-        loadingTrue={() => setLoading(true)}
-        loadingFalse={() => setLoading(false)}
-        loading={loading}
-        getLocationsData={getLocationsData}
-        onNotify={(notif) => setSnackbar(notif)}
-        selectedData={selectedData}
-      />
-      <LoadingBackdrop message="Loading..." open={loading} />
-      {/* Snackbar notification */}
+
       <Notification
         open={snackbar.open}
         message={snackbar.message}
         severity={snackbar.severity}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       />
     </Box>
   );
