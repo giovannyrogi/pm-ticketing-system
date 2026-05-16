@@ -11,7 +11,7 @@ import {
  * ===============================
  */
 
-const AUTH_ROUTES = ["/login", "/register"];
+const AUTH_ROUTES = ["/login", "/register", "/forgot-password"];
 /**
  * ===============================
  * FUNCTION GET DEFAULT ROUTE

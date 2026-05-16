@@ -4,7 +4,16 @@ import bcrypt from "bcryptjs";
 
 import { compareOTP } from "@/app/utils/otpUtils";
 
-import { sanitizePhoneNumber } from "@/app/utils/validationTextField";
+import {
+  phoneRegex,
+  sanitizePhoneNumber,
+} from "@/app/utils/validationTextField";
+import {
+  validateAuthEmail,
+  validateAuthPassword,
+  validateFullName,
+  validateUsername,
+} from "@/app/utils/authValidation";
 
 import { NextResponse } from "next/server";
 
@@ -13,7 +22,38 @@ export async function POST(req) {
     const { fullName, username, password, email, phoneNumber, otpCode } =
       await req.json();
 
+    const sanitizedFullName = String(fullName ?? "").trim();
+
+    const sanitizedUsername = String(username ?? "").trim();
+
+    const sanitizedEmail = String(email ?? "").trim().toLowerCase();
+
     const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
+
+    const validationMessage =
+      validateFullName(sanitizedFullName) ||
+      validateUsername(sanitizedUsername) ||
+      validateAuthPassword(password) ||
+      validateAuthEmail(sanitizedEmail);
+
+    if (validationMessage) {
+      return NextResponse.json(
+        {
+          message: validationMessage,
+        },
+        { status: 400 },
+      );
+    }
+
+    if (!phoneRegex.test(sanitizedPhoneNumber)) {
+      return NextResponse.json(
+        {
+          message:
+            "Nomor telepon harus diawali angka 8 dan terdiri dari 10-14 digit",
+        },
+        { status: 400 },
+      );
+    }
 
     /**
      * ===============================
@@ -111,6 +151,27 @@ export async function POST(req) {
       );
     }
 
+    const duplicateUser = await pool.query(
+      `
+        SELECT id
+        FROM users
+        WHERE username = $1
+        OR email = $2
+        OR phone_number = $3
+        LIMIT 1
+      `,
+      [sanitizedUsername, sanitizedEmail, sanitizedPhoneNumber],
+    );
+
+    if (duplicateUser.rows.length > 0) {
+      return NextResponse.json(
+        {
+          message: "Username, email, atau nomor telepon sudah digunakan",
+        },
+        { status: 400 },
+      );
+    }
+
     /**
      * ===============================
      * HASH PASSWORD
@@ -140,11 +201,11 @@ export async function POST(req) {
         RETURNING *
       `,
       [
-        fullName,
-        username,
+        sanitizedFullName,
+        sanitizedUsername,
         hashedPassword,
         "user",
-        email,
+        sanitizedEmail,
         sanitizedPhoneNumber,
         true,
       ],

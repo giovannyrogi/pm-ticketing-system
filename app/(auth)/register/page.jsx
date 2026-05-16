@@ -10,24 +10,29 @@ import {
   IconButton,
   InputAdornment,
   useMediaQuery,
-  CircularProgress,
   useTheme,
   Grid,
-  ButtonBase,
+  Stack,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Icon } from "@iconify/react";
 import axios from "axios";
-import Image from "next/image";
+import AuthPageHeader from "@/app/components/auth/AuthPageHeader";
 import Notification from "@/app/components/notification/Notification";
 import LoadingBackdrop from "@/app/components/loading/Backdrop";
 import Footer from "@/app/components/footer/page";
-import Link from "next/link";
 import SuccessRegistration from "./SuccessRegistration";
 import {
-  emailRegex,
-  phoneRegex,
+  AUTH_VALIDATION_LIMITS,
+  removeSpaces,
+  validateAuthEmail,
+  validateAuthPassword,
+  validateFullName,
+  validatePasswordConfirmation,
+  validateUsername,
+} from "@/app/utils/authValidation";
+import {
   sanitizePhoneNumber,
-  validateEmail,
   validatePhoneNumber,
 } from "@/app/utils/validationTextField";
 import OTPVerificationModal from "@/app/components/otp-verification-modal/OTPVerificationModal";
@@ -59,8 +64,12 @@ const RegisterPage = () => {
   const [openSuccessRegistrationModal, setOpenSuccessRegistrationModal] =
     useState(false);
   const [dataUser, setDataUser] = useState(null);
+  const [fullNameError, setFullNameError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [konfirmasiPasswordError, setKonfirmasiPasswordError] = useState("");
   const [openOtpModal, setOpenOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [otpExpiredAt, setOtpExpiredAt] = useState(null);
@@ -68,6 +77,16 @@ const RegisterPage = () => {
 
   const [resendAvailableAt, setResendAvailableAt] = useState(null);
   const [otpRemainingTime, setOtpRemainingTime] = useState(0);
+  const fieldHelperTextProps = {
+    sx: {
+      ml: 0,
+      mr: 0,
+      fontFamily: "Poppins",
+      fontWeight: 500,
+      fontSize: 12,
+      lineHeight: 1.5,
+    },
+  };
 
   useEffect(() => {
     if (!otpExpiredAt) return;
@@ -229,12 +248,73 @@ const RegisterPage = () => {
     setPhoneError(validatePhoneNumber(value));
   };
 
-  const handleEmailChange = (e) => {
+  const handleFullNameChange = (e) => {
     const value = e.target.value;
+
+    setFullName(value);
+    setFullNameError(value ? validateFullName(value) : "");
+  };
+
+  const handleUsernameChange = (e) => {
+    const value = removeSpaces(e.target.value);
+
+    setUsername(value);
+    setUsernameError(value ? validateUsername(value) : "");
+  };
+
+  const handleEmailChange = (e) => {
+    const value = removeSpaces(e.target.value);
 
     setEmail(value);
 
-    setEmailError(validateEmail(value));
+    setEmailError(value ? validateAuthEmail(value) : "");
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = removeSpaces(e.target.value);
+
+    setPassword(value);
+    setPasswordError(value ? validateAuthPassword(value) : "");
+
+    if (konfirmasiPassword) {
+      setKonfirmasiPasswordError(
+        validatePasswordConfirmation(value, konfirmasiPassword),
+      );
+    }
+  };
+
+  const handleKonfirmasiPasswordChange = (e) => {
+    const value = removeSpaces(e.target.value);
+
+    setKonfirmasiPassword(value);
+    setKonfirmasiPasswordError(
+      value ? validatePasswordConfirmation(password, value) : "",
+    );
+  };
+
+  const validateRegisterForm = () => {
+    const validations = {
+      fullName: validateFullName(fullName),
+      username: validateUsername(username),
+      email: validateAuthEmail(email),
+      phone:
+        validatePhoneNumber(phoneNumber) ||
+        (!phoneNumber ? "Nomor telepon harus diisi" : ""),
+      password: validateAuthPassword(password),
+      konfirmasiPassword: validatePasswordConfirmation(
+        password,
+        konfirmasiPassword,
+      ),
+    };
+
+    setFullNameError(validations.fullName);
+    setUsernameError(validations.username);
+    setEmailError(validations.email);
+    setPhoneError(validations.phone);
+    setPasswordError(validations.password);
+    setKonfirmasiPasswordError(validations.konfirmasiPassword);
+
+    return Object.values(validations).find(Boolean) || "";
   };
 
   const handleResendOTP = async () => {
@@ -295,51 +375,14 @@ const RegisterPage = () => {
     setLoading(true);
     setRedirecting(true);
 
-    if (konfirmasiPassword !== password) {
+    const validationMessage = validateRegisterForm();
+
+    if (validationMessage) {
       setSnackbar({
         open: true,
-        message: "Password dan Konfirmasi Password tidak cocok",
+        message: validationMessage,
         severity: "error",
       });
-      setLoading(false);
-      setRedirecting(false);
-      return;
-    }
-
-    /**
-     * =========================
-     * EMAIL VALIDATION
-     * =========================
-     */
-    const emailValidation = validateEmail(email);
-
-    if (emailValidation) {
-      setSnackbar({
-        open: true,
-        message: emailValidation,
-        severity: "error",
-      });
-
-      setLoading(false);
-      setRedirecting(false);
-
-      return;
-    }
-
-    /**
-     * =========================
-     * PHONE VALIDATION
-     * =========================
-     */
-    const phoneValidation = validatePhoneNumber(phoneNumber);
-
-    if (phoneValidation) {
-      setSnackbar({
-        open: true,
-        message: phoneValidation,
-        severity: "error",
-      });
-
       setLoading(false);
       setRedirecting(false);
       return;
@@ -491,6 +534,8 @@ const RegisterPage = () => {
         minHeight: "100vh",
 
         bgcolor: "background.default",
+        background:
+          "linear-gradient(135deg, rgba(230,9,9,0.05) 0%, #FFFFFF 46%, rgba(22,163,74,0.06) 100%)",
 
         display: "flex",
 
@@ -504,8 +549,7 @@ const RegisterPage = () => {
 
         overflowY: "auto",
 
-        pl: 2,
-        pr: 2,
+        px: { xs: 1.6, md: 2.4 },
       }}
     >
       <Box
@@ -519,292 +563,378 @@ const RegisterPage = () => {
           alignItems: "center",
 
           justifyContent: "center",
+
+          pt: { xs: 3, md: 5 },
+          pb: { xs: 5, md: 5 },
         }}
       >
         <Paper
           elevation={6}
           sx={{
-            p: 4,
-
             width: "100%",
 
-            maxWidth: isMobile ? 400 : 600,
+            maxWidth: 980,
 
             borderRadius: 3,
 
             bgcolor: "background.default",
 
-            boxShadow: 4,
+            boxShadow: "0 22px 58px rgba(15, 23, 42, 0.12)",
+            overflow: "hidden",
+            border: "1px solid rgba(15, 23, 42, 0.10)",
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "column",
-              mb: 4,
-            }}
-          >
-            <Typography
-              sx={{
-                fontFamily: "Poppins",
-                fontSize: 24,
-                fontWeight: 600,
+          <AuthPageHeader
+            badge="Buat Akun PMCare"
+            title="Daftar Akun Baru"
+            description="Lengkapi data akun untuk membuat laporan, memantau tiket, dan menerima verifikasi melalui WhatsApp."
+          />
+          <Box sx={{ p: { xs: 2.4, md: 3.4 } }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleRegister();
               }}
             >
-              Daftar Akun Baru
-            </Typography>
-          </Box>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleRegister();
-            }}
-          >
-            <Grid container rowGap={3} spacing={2}>
-              <Grid size={12}>
-                <TextField
-                  label="Nama Lengkap"
-                  variant="filled"
-                  fullWidth
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  disabled={loading || redirecting}
-                  color="primary"
-                />
-              </Grid>
-              <Grid size={isMobile ? 12 : 6}>
-                <TextField
-                  label="Username"
-                  variant="filled"
-                  fullWidth
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  disabled={loading || redirecting}
-                  color="primary"
-                />
-              </Grid>
-              <Grid size={isMobile ? 12 : 6}>
-                <TextField
-                  label="Email"
-                  type="email"
-                  variant="filled"
-                  fullWidth
-                  value={email}
-                  onChange={handleEmailChange}
-                  autoComplete="email"
-                  required
-                  disabled={loading || redirecting}
-                  color="primary"
-                  error={!!emailError}
-                  helperText={emailError}
-                  FormHelperTextProps={{
-                    sx: {
-                      ml: 0,
-                      mr: 0,
-                      textFamily: "Poppins",
-                      fontWeight: "500",
-                      fontSize: 13,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid size={12}>
-                <TextField
-                  label="Nomor Telepon"
-                  placeholder="Cth : 82187xxxxxx"
-                  variant="filled"
-                  fullWidth
-                  value={phoneNumber}
-                  onChange={handlePhoneNumberChange}
-                  required
-                  disabled={loading || redirecting || isOTPActive}
-                  color="primary"
-                  error={!!phoneError}
-                  helperText={
-                    phoneError ? (
-                      phoneError
-                    ) : isOTPActive && otpRemainingTime > 0 ? (
-                      <Typography
-                        component="span"
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 0.7,
-
-                          mt: 0.3,
-
-                          fontSize: 12,
-
-                          fontWeight: 600,
-
-                          fontFamily: "Poppins",
-
-                          color: "warning.main",
-                        }}
-                      >
-                        Nomor telepon terkunci sementara selama proses
-                        verifikasi OTP ({formatCountdown(otpRemainingTime)})
-                      </Typography>
-                    ) : null
-                  }
-                  FormHelperTextProps={{
-                    sx: {
-                      ml: 0,
-                      mr: 0,
-                      textFamily: "Poppins",
-                      fontWeight: 500,
-                      fontSize: 12,
-                      lineHeight: 1.5,
-                    },
-                  }}
-                  inputProps={{
-                    inputMode: "numeric",
-                    pattern: "[0-9]*",
-                    maxLength: 14,
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
+              <Grid container rowGap={2.4} spacing={2}>
+                <Grid size={12}>
+                  <TextField
+                    label="Nama Lengkap"
+                    placeholder="John Doe"
+                    variant="filled"
+                    fullWidth
+                    value={fullName}
+                    onChange={handleFullNameChange}
+                    required
+                    disabled={loading || redirecting}
+                    color="primary"
+                    error={!!fullNameError}
+                    helperText={fullNameError}
+                    FormHelperTextProps={fieldHelperTextProps}
+                    inputProps={{
+                      maxLength: AUTH_VALIDATION_LIMITS.fullNameMax,
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Icon
+                            icon="mdi:account-outline"
+                            fontSize={19}
+                            color={theme.palette.primary.main}
+                          />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid size={isMobile ? 12 : 6}>
+                  <TextField
+                    label="Username"
+                    placeholder="johndoe"
+                    variant="filled"
+                    fullWidth
+                    value={username}
+                    onChange={handleUsernameChange}
+                    required
+                    disabled={loading || redirecting}
+                    color="primary"
+                    error={!!usernameError}
+                    helperText={usernameError}
+                    FormHelperTextProps={fieldHelperTextProps}
+                    inputProps={{
+                      maxLength: AUTH_VALIDATION_LIMITS.usernameMax,
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Icon
+                            icon="mdi:account-badge-outline"
+                            fontSize={19}
+                            color={theme.palette.primary.main}
+                          />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid size={isMobile ? 12 : 6}>
+                  <TextField
+                    label="Email"
+                    placeholder="Cth : name@example.com"
+                    type="email"
+                    variant="filled"
+                    fullWidth
+                    value={email}
+                    onChange={handleEmailChange}
+                    autoComplete="email"
+                    required
+                    disabled={loading || redirecting}
+                    color="primary"
+                    error={!!emailError}
+                    helperText={emailError}
+                    inputProps={{
+                      maxLength: AUTH_VALIDATION_LIMITS.emailMax,
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Icon
+                            icon="mdi:email-outline"
+                            fontSize={19}
+                            color={theme.palette.primary.main}
+                          />
+                        </InputAdornment>
+                      ),
+                    }}
+                    FormHelperTextProps={fieldHelperTextProps}
+                  />
+                </Grid>
+                <Grid size={12}>
+                  <TextField
+                    label="Nomor Telepon"
+                    placeholder="Cth : 82187xxxxxx"
+                    variant="filled"
+                    fullWidth
+                    value={phoneNumber}
+                    onChange={handlePhoneNumberChange}
+                    required
+                    disabled={loading || redirecting || isOTPActive}
+                    color="primary"
+                    error={!!phoneError}
+                    helperText={
+                      phoneError ? (
+                        phoneError
+                      ) : isOTPActive && otpRemainingTime > 0 ? (
                         <Typography
+                          component="span"
                           sx={{
-                            color: "text.primary",
-                            fontWeight: 500,
-                            fontSize: 14,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.7,
+
+                            mt: 0.3,
+
+                            fontSize: 12,
+
+                            fontWeight: 600,
+
                             fontFamily: "Poppins",
+
+                            color: "warning.main",
                           }}
                         >
-                          +62
+                          Nomor telepon terkunci sementara selama proses
+                          verifikasi OTP ({formatCountdown(otpRemainingTime)})
                         </Typography>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid size={isMobile ? 12 : 6}>
-                <TextField
-                  label="Password"
-                  variant="filled"
-                  fullWidth
-                  type={showPass ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading || redirecting}
-                  color="primary"
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={() => setShowPass(!showPass)}
-                          edge="end"
-                          disabled={loading || redirecting}
-                        >
-                          {showPass ? (
-                            <Icon
-                              icon="line-md:watch-twotone-loop"
-                              style={{ color: theme.palette.primary.main }}
-                              fontSize={25}
-                            />
-                          ) : (
-                            <Icon
-                              icon="line-md:watch-off-loop"
-                              style={{ color: theme.palette.primary.main }}
-                              fontSize={25}
-                            />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid size={isMobile ? 12 : 6}>
-                <TextField
-                  label="Konfirmasi Password"
-                  variant="filled"
-                  fullWidth
-                  type={showPass2 ? "text" : "password"}
-                  value={konfirmasiPassword}
-                  onChange={(e) => setKonfirmasiPassword(e.target.value)}
-                  required
-                  disabled={loading || redirecting}
-                  color="primary"
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={() => setShowPass2(!showPass2)}
-                          edge="end"
-                          disabled={loading || redirecting}
-                        >
-                          {showPass2 ? (
-                            <Icon
-                              icon="line-md:watch-twotone-loop"
-                              style={{ color: theme.palette.primary.main }}
-                              fontSize={25}
-                            />
-                          ) : (
-                            <Icon
-                              icon="line-md:watch-off-loop"
-                              style={{ color: theme.palette.primary.main }}
-                              fontSize={25}
-                            />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid size={12}>
-                <Typography
-                  sx={{
-                    fontSize: 13,
-                    mt: 0.5,
-                    fontFamily: "Poppins",
-                    fontWeight: 500,
-                    color: "text.disabled",
-                  }}
-                >
-                  Sudah punya akun?
-                  <span
-                    onClick={handleRedirect}
-                    style={{
-                      color: theme.palette.primary.main,
-                      fontWeight: "bold",
-                      cursor: "pointer",
-                      marginLeft: 5,
+                      ) : null
+                    }
+                    FormHelperTextProps={fieldHelperTextProps}
+                    inputProps={{
+                      inputMode: "numeric",
+                      pattern: "[0-9]*",
+                      maxLength: 14,
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Typography
+                            sx={{
+                              color: "text.primary",
+                              fontWeight: 500,
+                              fontSize: 14,
+                              fontFamily: "Poppins",
+                            }}
+                          >
+                            +62
+                          </Typography>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid size={isMobile ? 12 : 6}>
+                  <TextField
+                    label="Password"
+                    placeholder="Password minimal 6 karakter"
+                    variant="filled"
+                    fullWidth
+                    type={showPass ? "text" : "password"}
+                    value={password}
+                    onChange={handlePasswordChange}
+                    required
+                    disabled={loading || redirecting}
+                    color="primary"
+                    error={!!passwordError}
+                    helperText={passwordError}
+                    FormHelperTextProps={fieldHelperTextProps}
+                    inputProps={{
+                      maxLength: AUTH_VALIDATION_LIMITS.passwordMax,
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Icon
+                            icon="mdi:lock-outline"
+                            fontSize={18}
+                            color={theme.palette.primary.main}
+                          />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={() => setShowPass(!showPass)}
+                            edge="end"
+                            disabled={loading || redirecting}
+                          >
+                            {showPass ? (
+                              <Icon
+                                icon="line-md:watch-twotone-loop"
+                                style={{ color: theme.palette.primary.main }}
+                                fontSize={25}
+                              />
+                            ) : (
+                              <Icon
+                                icon="line-md:watch-off-loop"
+                                style={{ color: theme.palette.primary.main }}
+                                fontSize={25}
+                              />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid size={isMobile ? 12 : 6}>
+                  <TextField
+                    label="Konfirmasi Password"
+                    placeholder="Password minimal 6 karakter"
+                    variant="filled"
+                    fullWidth
+                    type={showPass2 ? "text" : "password"}
+                    value={konfirmasiPassword}
+                    onChange={handleKonfirmasiPasswordChange}
+                    required
+                    disabled={loading || redirecting}
+                    color="primary"
+                    error={!!konfirmasiPasswordError}
+                    helperText={konfirmasiPasswordError}
+                    FormHelperTextProps={fieldHelperTextProps}
+                    inputProps={{
+                      maxLength: AUTH_VALIDATION_LIMITS.passwordMax,
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Icon
+                            icon="mdi:lock-check-outline"
+                            fontSize={18}
+                            color={theme.palette.primary.main}
+                          />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={() => setShowPass2(!showPass2)}
+                            edge="end"
+                            disabled={loading || redirecting}
+                          >
+                            {showPass2 ? (
+                              <Icon
+                                icon="line-md:watch-twotone-loop"
+                                style={{ color: theme.palette.primary.main }}
+                                fontSize={25}
+                              />
+                            ) : (
+                              <Icon
+                                icon="line-md:watch-off-loop"
+                                style={{ color: theme.palette.primary.main }}
+                                fontSize={25}
+                              />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid size={12}>
+                  <Box
+                    sx={{
+                      mt: 0.2,
+                      p: 1.35,
+                      borderRadius: 2,
+                      bgcolor: alpha(theme.palette.primary.main, 0.04),
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      alignItems: { xs: "flex-start", sm: "center" },
+                      justifyContent: "space-between",
+                      gap: 1,
                     }}
                   >
-                    Login
-                  </span>
-                </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: 13,
+                        fontFamily: "Poppins",
+                        fontWeight: 600,
+                        color: "rgba(35,35,35,0.62)",
+                      }}
+                    >
+                      Sudah punya akun?
+                    </Typography>
+                    <Button
+                      variant="text"
+                      onClick={handleRedirect}
+                      disabled={loading || redirecting}
+                      startIcon={<Icon icon="mdi:login-variant" />}
+                      sx={{
+                        minWidth: 0,
+                        px: 0,
+                        py: 0,
+                        fontSize: 13,
+                        fontFamily: "Poppins",
+                        fontWeight: 800,
+                        color: theme.palette.primary.main,
+                        textTransform: "none",
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      Login
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid size={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    // startIcon={<Icon icon="mdi:account-plus-outline" />}
+                    sx={{
+                      py: 1.2,
+                      borderRadius: 1.8,
+                      fontFamily: "Poppins",
+                      fontWeight: 600,
+                      fontSize: 16,
+                      textTransform: "none",
+                      boxShadow: "0 8px 18px rgba(230,9,9,0.24)",
+                    }}
+                    disabled={loading || redirecting}
+                  >
+                    {loading ? "Loading..." : "Daftar Sekarang"}
+                  </Button>
+                </Grid>
               </Grid>
-              <Grid size={12}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  size="small"
-                  fullWidth
-                  sx={{
-                    fontWeight: "bold",
-                    fontSize: 16,
-                    textTransform: "none",
-                  }}
-                  disabled={loading || redirecting}
-                >
-                  {loading ? "Loading..." : "Daftar Sekarang"}
-                </Button>
-              </Grid>
-            </Grid>
-          </form>
+            </form>
+          </Box>
         </Paper>
       </Box>
 

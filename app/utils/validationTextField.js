@@ -22,7 +22,7 @@ export const phoneRegex =
 export const validateEmail = (value = "") => {
   if (!value) return "";
 
-  return emailRegex.test(value)
+  return emailRegex.test(String(value))
     ? ""
     : "Format email tidak valid";
 };
@@ -33,7 +33,7 @@ export const validateEmail = (value = "") => {
  * ===============================
  */
 export const sanitizePhoneNumber = (value = "") => {
-  let result = value.replace(/\D/g, "");
+  let result = String(value ?? "").replace(/\D/g, "");
 
   if (result.startsWith("0")) {
     result = result.slice(1);

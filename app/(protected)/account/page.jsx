@@ -18,7 +18,7 @@ import {
   validateEmail,
   validatePhoneNumber,
 } from "@/app/utils/validationTextField";
-import { Box, Grid, Stack } from "@mui/material";
+import { Box, Grid, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 
@@ -457,7 +457,19 @@ const AccountPage = () => {
             label: "Nomor WhatsApp baru",
             type: "tel",
             autoComplete: "tel",
-            placeholder: "8xxxxxxxxxx",
+            placeholder: "82187xxxxxx",
+            startAdornment: (
+              <Typography
+                sx={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "text.primary",
+                }}
+              >
+                +62
+              </Typography>
+            ),
           },
         ]}
       />

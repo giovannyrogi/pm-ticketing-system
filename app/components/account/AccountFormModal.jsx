@@ -119,40 +119,40 @@ const AccountFormModal = ({
                   onChange={(e) => onChange(field.name, e.target.value)}
                   autoComplete={field.autoComplete}
                   placeholder={field.placeholder}
-                  InputProps={
-                    field.type === "password"
-                      ? {
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                aria-label={
-                                  visiblePasswords[field.name]
-                                    ? "Sembunyikan password"
-                                    : "Tampilkan password"
-                                }
-                                onClick={() =>
-                                  togglePasswordVisibility(field.name)
-                                }
-                                edge="end"
-                                sx={{
-                                  color: actionColor,
-                                  mr: -0.4,
-                                }}
-                              >
-                                <Icon
-                                  icon={
-                                    visiblePasswords[field.name]
-                                      ? "mdi:eye-off-outline"
-                                      : "mdi:eye-outline"
-                                  }
-                                  fontSize={22}
-                                />
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }
-                      : undefined
-                  }
+                  InputProps={{
+                    startAdornment: field.startAdornment ? (
+                      <InputAdornment position="start">
+                        {field.startAdornment}
+                      </InputAdornment>
+                    ) : undefined,
+                    endAdornment:
+                      field.type === "password" ? (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label={
+                              visiblePasswords[field.name]
+                                ? "Sembunyikan password"
+                                : "Tampilkan password"
+                            }
+                            onClick={() => togglePasswordVisibility(field.name)}
+                            edge="end"
+                            sx={{
+                              color: actionColor,
+                              mr: -0.4,
+                            }}
+                          >
+                            <Icon
+                              icon={
+                                visiblePasswords[field.name]
+                                  ? "mdi:eye-off-outline"
+                                  : "mdi:eye-outline"
+                              }
+                              fontSize={22}
+                            />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : undefined,
+                  }}
                   sx={{
                     bgcolor: "#f5f6f8",
                     px: 1.6,

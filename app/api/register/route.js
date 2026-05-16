@@ -1,9 +1,14 @@
 import pool from "@/lib/dbConfig";
 import {
-  emailRegex,
   phoneRegex,
   sanitizePhoneNumber,
 } from "@/app/utils/validationTextField";
+import {
+  validateAuthEmail,
+  validateAuthPassword,
+  validateFullName,
+  validateUsername,
+} from "@/app/utils/authValidation";
 import bcrypt from "bcryptjs";
 const { NextResponse } = require("next/server");
 
@@ -17,47 +22,23 @@ export async function POST(req) {
      * SANITIZE INPUT
      * ===============================
      */
-    const sanitizedEmail = email?.trim().toLowerCase();
+    const sanitizedFullName = String(fullName ?? "").trim();
+
+    const sanitizedUsername = String(username ?? "").trim();
+
+    const sanitizedEmail = String(email ?? "").trim().toLowerCase();
 
     const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
 
-    console.log("full_name", fullName);
-    console.log("username", username);
-    console.log("password", password);
-    console.log("email", email);
-    console.log("phone_number", phoneNumber);
+    const validationMessage =
+      validateFullName(sanitizedFullName) ||
+      validateUsername(sanitizedUsername) ||
+      validateAuthPassword(password) ||
+      validateAuthEmail(sanitizedEmail);
 
-    if (!username) {
+    if (validationMessage) {
       return NextResponse.json(
-        { message: "Username harus diisi" },
-        { status: 400 },
-      );
-    }
-
-    if (!password) {
-      return NextResponse.json(
-        { message: "Password harus diisi" },
-        { status: 400 },
-      );
-    }
-
-    if (!email) {
-      return NextResponse.json(
-        { message: "Email harus diisi" },
-        { status: 400 },
-      );
-    }
-
-    /**
-     * ===============================
-     * EMAIL FORMAT VALIDATION
-     * ===============================
-     */
-    if (!emailRegex.test(sanitizedEmail)) {
-      return NextResponse.json(
-        {
-          message: "Format email tidak valid",
-        },
+        { message: validationMessage },
         { status: 400 },
       );
     }
@@ -88,7 +69,7 @@ export async function POST(req) {
     const userRes = await pool.query(
       `SELECT id, full_name, username, password, role, email, phone_number, is_active
        FROM users WHERE username = $1`,
-      [username],
+      [sanitizedUsername],
     );
 
     if (userRes.rows.length > 0) {
@@ -112,14 +93,28 @@ export async function POST(req) {
       );
     }
 
+    const phoneRes = await pool.query(
+      `SELECT id
+       FROM users
+       WHERE phone_number = $1`,
+      [sanitizedPhoneNumber],
+    );
+
+    if (phoneRes.rows.length > 0) {
+      return NextResponse.json(
+        { message: "Nomor telepon sudah terdaftar" },
+        { status: 400 },
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Simpan user baru ke database
     const user = await pool.query(
       `INSERT INTO users (full_name, username, password, role, email, phone_number, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [
-        fullName,
-        username,
+        sanitizedFullName,
+        sanitizedUsername,
         hashedPassword,
         "user",
         sanitizedEmail,

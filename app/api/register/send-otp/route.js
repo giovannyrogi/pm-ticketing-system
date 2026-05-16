@@ -1,10 +1,15 @@
 import pool from "@/lib/dbConfig";
 
 import {
-  emailRegex,
   phoneRegex,
   sanitizePhoneNumber,
 } from "@/app/utils/validationTextField";
+import {
+  validateAuthEmail,
+  validateAuthPassword,
+  validateFullName,
+  validateUsername,
+} from "@/app/utils/authValidation";
 
 import { generateOTP, hashOTP, getOTPExpiredTime } from "@/app/utils/otpUtils";
 
@@ -22,7 +27,11 @@ export async function POST(req) {
      * SANITIZE
      * ===============================
      */
-    const sanitizedEmail = email?.trim().toLowerCase();
+    const sanitizedFullName = String(fullName ?? "").trim();
+
+    const sanitizedUsername = String(username ?? "").trim();
+
+    const sanitizedEmail = String(email ?? "").trim().toLowerCase();
 
     const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
 
@@ -31,37 +40,16 @@ export async function POST(req) {
      * REQUIRED VALIDATION
      * ===============================
      */
-    if (!fullName) {
-      return NextResponse.json(
-        {
-          message: "Nama lengkap harus diisi",
-        },
-        { status: 400 },
-      );
-    }
+    const validationMessage =
+      validateFullName(sanitizedFullName) ||
+      validateUsername(sanitizedUsername) ||
+      validateAuthPassword(password) ||
+      validateAuthEmail(sanitizedEmail);
 
-    if (!username) {
+    if (validationMessage) {
       return NextResponse.json(
         {
-          message: "Username harus diisi",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (!password) {
-      return NextResponse.json(
-        {
-          message: "Password harus diisi",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (!email) {
-      return NextResponse.json(
-        {
-          message: "Email harus diisi",
+          message: validationMessage,
         },
         { status: 400 },
       );
@@ -71,20 +59,6 @@ export async function POST(req) {
       return NextResponse.json(
         {
           message: "Nomor telepon harus diisi",
-        },
-        { status: 400 },
-      );
-    }
-
-    /**
-     * ===============================
-     * EMAIL VALIDATION
-     * ===============================
-     */
-    if (!emailRegex.test(sanitizedEmail)) {
-      return NextResponse.json(
-        {
-          message: "Format email tidak valid",
         },
         { status: 400 },
       );
@@ -115,7 +89,7 @@ export async function POST(req) {
         FROM users
         WHERE username = $1
       `,
-      [username],
+      [sanitizedUsername],
     );
 
     if (usernameRes.rows.length > 0) {

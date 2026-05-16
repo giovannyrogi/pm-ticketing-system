@@ -40,6 +40,8 @@ const OTPVerificationModal = ({
   secondaryActionLabel = "",
 
   onSecondaryAction,
+
+  secondaryActionIcon = "solar:pen-bold",
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -337,7 +339,7 @@ const OTPVerificationModal = ({
                   },
                 }}
               >
-                <Icon icon="solar:pen-bold" width={15} />
+                <Icon icon={secondaryActionIcon} width={15} />
 
                 <FontStyle
                   sx={{
