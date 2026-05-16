@@ -6,29 +6,21 @@ import {
   TextField,
   Tabs,
   Tab,
-  Chip,
   Paper,
+  Stack,
   useTheme,
   Button,
   useMediaQuery,
 } from "@mui/material";
-import {
-  Table,
-  ConfigProvider,
-  theme as antdTheme,
-  Input,
-  Space,
-  Button as AntdButton,
-  Tag,
-  Typography,
-  Tooltip,
-} from "antd";
+import { alpha } from "@mui/material/styles";
+import { Table, ConfigProvider, theme as antdTheme, Tooltip } from "antd";
 import axios from "axios";
 import moment from "moment";
 import { useUser } from "@/app/utils/useUser";
 import { Icon } from "@iconify/react";
 import FontStyle from "@/app/components/font-style/FontStyle";
 import StatusTag from "@/app/components/status-tag/StatusTag";
+import TicketListHeader from "@/app/components/ticket-list/TicketListHeader";
 import { FilterFilled } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 
@@ -44,6 +36,7 @@ const TicketList = () => {
     all: [],
     pending: [],
     mine: [],
+    mineActive: [],
     others: [],
     proses: [],
     selesai: [],
@@ -51,11 +44,13 @@ const TicketList = () => {
   });
   const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(false);
 
   // =========================
   // FETCH DATA
   // =========================
   const getData = async () => {
+    setLoading(true);
     try {
       const res = await axios.get("/api/ticket-list/get-ticket-list");
       // console.log("res", res.data);
@@ -64,6 +59,8 @@ const TicketList = () => {
       setFiltered(res.data.data || []);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,9 +80,12 @@ const TicketList = () => {
     const all = tickets;
 
     const pending = tickets.filter((t) => !t.assigned_to);
-    const mine = tickets.filter((t) => t.assigned_to === currentUserId);
+    const mine = tickets.filter(
+      (t) => Number(t.assigned_to) === Number(currentUserId),
+    );
+    const mineActive = mine.filter((t) => t.status === "proses");
     const others = tickets.filter(
-      (t) => t.assigned_to && t.assigned_to !== currentUserId,
+      (t) => t.assigned_to && Number(t.assigned_to) !== Number(currentUserId),
     );
     const proses = tickets.filter((t) => t.status === "proses");
     const selesai = tickets.filter((t) => t.status === "selesai");
@@ -96,6 +96,7 @@ const TicketList = () => {
       all,
       pending,
       mine,
+      mineActive,
       others,
       proses,
       selesai,
@@ -131,19 +132,66 @@ const TicketList = () => {
 
     // SEARCH
     if (search) {
+      const keyword = search.toLowerCase();
+
       data = data.filter(
         (t) =>
-          t.ticket_title.toLowerCase().includes(search.toLowerCase()) ||
-          t.ticket_code.toLowerCase().includes(search.toLowerCase()) ||
-          t.category.name.toLowerCase().includes(search.toLowerCase()) ||
-          t.status.toLowerCase().includes(search.toLowerCase()) ||
-          t.location?.name.toLowerCase().includes(search.toLowerCase()) ||
-          t.admin?.name.toLowerCase().includes(search.toLowerCase()),
+          t.ticket_title?.toLowerCase().includes(keyword) ||
+          t.ticket_code?.toLowerCase().includes(keyword) ||
+          t.category?.name?.toLowerCase().includes(keyword) ||
+          t.status?.toLowerCase().includes(keyword) ||
+          t.location?.name?.toLowerCase().includes(keyword) ||
+          t.admin?.name?.toLowerCase().includes(keyword),
       );
     }
 
     setFiltered(data);
-  }, [tab, search, tickets]);
+  }, [tab, search, tickets, currentUserId]);
+
+  const tabItems = [
+    {
+      label: "Semua",
+      value: "all",
+      count: dataTabs.all.length,
+      icon: "mdi:view-dashboard-outline",
+    },
+    {
+      label: "Saya Tangani",
+      value: "mine",
+      count: dataTabs.mine.length,
+      icon: "mdi:account-check-outline",
+    },
+    {
+      label: "Admin Lain",
+      value: "others",
+      count: dataTabs.others.length,
+      icon: "mdi:account-multiple-outline",
+    },
+    {
+      label: "Pending",
+      value: "pending",
+      count: dataTabs.pending.length,
+      icon: "mdi:timer-sand",
+    },
+    {
+      label: "Proses",
+      value: "proses",
+      count: dataTabs.proses.length,
+      icon: "mdi:progress-clock",
+    },
+    {
+      label: "Selesai",
+      value: "selesai",
+      count: dataTabs.selesai.length,
+      icon: "mdi:check-circle-outline",
+    },
+    {
+      label: "Ditolak",
+      value: "ditolak",
+      count: dataTabs.ditolak.length,
+      icon: "mdi:close-circle-outline",
+    },
+  ];
 
   // =========================
   // TABLE CONFIG
@@ -181,7 +229,23 @@ const TicketList = () => {
       key: "id",
       width: 50,
       render: (_, data, index) => {
-        return <FontStyle fontWeight={"500"}>{index + 1}</FontStyle>;
+        return (
+          <Box
+            sx={{
+              width: 28,
+              height: 28,
+              borderRadius: 1.5,
+              display: "grid",
+              placeItems: "center",
+              bgcolor: "rgba(15,23,42,0.04)",
+              color: "rgba(15,23,42,0.72)",
+            }}
+          >
+            <FontStyle sx={{ fontSize: 12, fontWeight: 800 }}>
+              {index + 1}
+            </FontStyle>
+          </Box>
+        );
       },
     },
     {
@@ -189,7 +253,7 @@ const TicketList = () => {
       dataIndex: "ticket_code",
       key: "ticket_code",
       width: 150,
-      render: (data) => <StatusTag label={data} color={"green"} />,
+      render: (data) => <StatusTag label={data} color="green" />,
     },
     {
       title: "Subjek Tiket",
@@ -206,7 +270,9 @@ const TicketList = () => {
                 cursor: "pointer",
               }}
             >
-              <FontStyle fontWeight={"500"}>{shortText}</FontStyle>
+              <FontStyle sx={{ fontSize: 12.5, fontWeight: 600 }}>
+                {shortText}
+              </FontStyle>
             </span>
           </Tooltip>
         );
@@ -227,7 +293,9 @@ const TicketList = () => {
       key: "location_name",
       render: (_, data) => {
         return (
-          <FontStyle fontWeight={"500"}>{data.location?.name || "-"}</FontStyle>
+          <FontStyle sx={{ fontSize: 12.5, fontWeight: 500 }}>
+            {data.location?.name || "-"}
+          </FontStyle>
         );
       },
       width: 180,
@@ -277,12 +345,9 @@ const TicketList = () => {
             color={theme.palette.primary.main}
           />
         ) : status === "selesai" || status === "proses" ? (
-          <StatusTag
-            label={adminName}
-            color={theme.palette.primary.main}
-          />
+          <StatusTag label={adminName} color={theme.palette.primary.main} />
         ) : (
-          <FontStyle fontWeight={"500"}>-</FontStyle>
+          <FontStyle sx={{ fontSize: 12.5, fontWeight: 800 }}>-</FontStyle>
         );
       },
     },
@@ -293,7 +358,7 @@ const TicketList = () => {
       width: 150,
       render: (data) => {
         return (
-          <FontStyle fontWeight={"500"}>
+          <FontStyle sx={{ fontSize: 12.5, fontWeight: 500 }}>
             {moment(data).locale("id").format("DD MMM YYYY")}
           </FontStyle>
         );
@@ -306,14 +371,23 @@ const TicketList = () => {
       fixed: isMobile ? false : "right",
       align: "center",
       render: (_, record) => {
-        const isPending = record.status === "pending";
         return (
           <Box display="flex" gap={1} justifyContent="center">
             <Button
               size="small"
               variant="contained"
-              color="info"
               onClick={() => handleView(record)}
+              sx={{
+                minWidth: 38,
+                width: 38,
+                height: 34,
+                borderRadius: 1.6,
+                bgcolor: theme.palette.primary.main,
+                boxShadow: "0 8px 16px rgba(230,9,9,0.22)",
+                "&:hover": {
+                  bgcolor: theme.palette.primary.dark,
+                },
+              }}
             >
               <Icon fontSize={18} icon="ant-design:message-outlined" />
             </Button>
@@ -362,166 +436,361 @@ const TicketList = () => {
   ];
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: { xs: 1.5, md: 2 }, pb: { xs: 3, md: 4 } }}>
       <ConfigProvider
         theme={{
           algorithm: antdTheme.defaultAlgorithm,
           token: {
             colorPrimary: theme.palette.primary.main,
+            borderRadius: 10,
+            fontFamily: "Poppins, sans-serif",
           },
 
           components: {
             Table: {
-              headerBg: theme.palette.primary.main,
+              headerBg: "#EF0B0B",
               headerColor: "#fff",
-              headerSplitColor: "#fff",
-
-              rowHoverBg: "#f5faff",
-
-              // borderRadius: 10,
+              headerSplitColor: "rgba(255,255,255,0.38)",
+              rowHoverBg: "rgba(239,11,11,0.035)",
+              borderColor: "rgba(15,23,42,0.08)",
             },
           },
         }}
       >
-        <Paper
-          elevation={2}
-          sx={{
-            p: "10px",
-            borderRadius: "10px",
-          }}
-        >
-          {/* =========================
-          FILTER TABS
-          ========================= */}
-          {isMobile && (
+        <Stack spacing={{ xs: 1.4, md: 2.2 }}>
+          <TicketListHeader />
+
+          <Paper
+            elevation={2}
+            sx={{
+              borderRadius: 2.5,
+              border: "1px solid rgba(15,23,42,0.10)",
+              boxShadow: "0 14px 34px rgba(15,23,42,0.08)",
+              overflow: "hidden",
+              bgcolor: "#fff",
+            }}
+          >
             <Box
               sx={{
-                fontSize: 11,
-                color: "text.secondary",
-                mb: 1,
-                px: 1,
+                p: { xs: 1.4, sm: 1.7, md: 2.2 },
+                borderBottom: "1px solid rgba(15,23,42,0.08)",
+                background:
+                  "linear-gradient(135deg, rgba(230,9,9,0.045) 0%, rgba(255,255,255,1) 58%, rgba(37,99,235,0.045) 100%)",
               }}
             >
-              Geser ke kiri / kanan untuk melihat kategori →
+              <Stack
+                direction={{ xs: "column", lg: "row" }}
+                spacing={{ xs: 1.4, lg: 2 }}
+                alignItems={{ xs: "stretch", lg: "center" }}
+                justifyContent="space-between"
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box
+                    sx={{
+                      width: { xs: 40, sm: 42 },
+                      height: { xs: 40, sm: 42 },
+                      borderRadius: 1.7,
+                      display: "grid",
+                      placeItems: "center",
+                      bgcolor: alpha(theme.palette.primary.main, 0.09),
+                      color: theme.palette.primary.main,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon icon="mdi:filter-variant" fontSize={22} />
+                  </Box>
+                  <Box minWidth={0}>
+                    <FontStyle
+                      sx={{
+                        fontSize: { xs: 15.5, sm: 16 },
+                        fontWeight: 600,
+                        letterSpacing: 0,
+                        color: "text.primary",
+                      }}
+                    >
+                      Temukan Tiket
+                    </FontStyle>
+                    <FontStyle
+                      sx={{
+                        mt: 0.2,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: "rgba(35,35,35,0.58)",
+                        letterSpacing: 0,
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      Gunakan pencarian dan tab status untuk mempersempit
+                      daftar.
+                    </FontStyle>
+                  </Box>
+                </Stack>
+
+                <TextField
+                  size="small"
+                  variant="filled"
+                  placeholder="Cari kode, subjek, kategori, lokasi, status, atau nama admin..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  sx={{
+                    width: { xs: "100%", lg: 560 },
+                    "& .MuiFilledInput-root": {
+                      minHeight: { xs: 44, sm: 46 },
+                      borderRadius: 2,
+                      bgcolor: "#fff",
+                      border: "1px solid rgba(15,23,42,0.08)",
+                      boxShadow: "0 10px 20px rgba(15,23,42,0.04)",
+                      alignItems: "center",
+                      overflow: "hidden",
+                      "&:hover": {
+                        bgcolor: "#fff",
+                      },
+                      "&.Mui-focused": {
+                        bgcolor: "#fff",
+                        borderColor: alpha(theme.palette.primary.main, 0.35),
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <Icon
+                        icon="line-md:search-twotone"
+                        fontSize={22}
+                        color={theme.palette.primary.main}
+                        style={{ marginRight: 8 }}
+                      />
+                    ),
+                  }}
+                  inputProps={{
+                    sx: {
+                      py: 1.05,
+                      fontSize: { xs: 12.5, sm: 13.5 },
+                      fontWeight: 600,
+                      textOverflow: "ellipsis",
+                    },
+                  }}
+                />
+              </Stack>
             </Box>
-          )}
 
-          <Tabs
-            value={tab}
-            onChange={(e, val) => setTab(val)}
-            variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
-            sx={{
-              mb: 2,
+            <Box
+              sx={{
+                px: { xs: 1.2, md: 1.8 },
+                pt: { xs: 1, md: 1.4 },
+                pb: { xs: 0.2, md: 0 },
+              }}
+            >
+              {isMobile && (
+                <FontStyle
+                  sx={{
+                    fontSize: 10.5,
+                    color: "text.secondary",
+                    mb: 0.8,
+                    px: 0.2,
+                    fontWeight: 700,
+                  }}
+                >
+                  Geser filter ke kiri atau kanan.
+                </FontStyle>
+              )}
+              <Tabs
+                value={tab}
+                onChange={(e, val) => setTab(val)}
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
+                sx={{
+                  minHeight: 0,
+                  "& .MuiTabs-indicator": {
+                    display: "none",
+                  },
+                  "& .MuiTabs-flexContainer": {
+                    gap: { xs: 0.8, sm: 1 },
+                  },
+                  "& .MuiTab-root": {
+                    minHeight: 0,
+                    p: 0,
+                    textTransform: "none",
+                    color: "rgba(35,35,35,0.62)",
+                  },
+                  "& .Mui-selected": {
+                    color: `${theme.palette.primary.main} !important`,
+                  },
+                }}
+              >
+                {tabItems.map((item) => {
+                  const active = tab === item.value;
 
-              "& .MuiTabs-indicator": {
-                backgroundColor: "primary.main !important",
-                height: 3,
-                borderRadius: 2,
-              },
+                  return (
+                    <Tab
+                      key={item.value}
+                      value={item.value}
+                      disableRipple
+                      label={
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          alignItems="center"
+                          sx={{
+                            px: { xs: 1, sm: 1.25 },
+                            py: { xs: 0.8, sm: 0.95 },
+                            minWidth: { xs: 126, sm: 142 },
+                            borderRadius: 2,
+                            border: `1px solid ${
+                              active
+                                ? alpha(theme.palette.primary.main, 0.28)
+                                : "rgba(15,23,42,0.08)"
+                            }`,
+                            bgcolor: active
+                              ? alpha(theme.palette.primary.main, 0.08)
+                              : "#fff",
+                            boxShadow: active
+                              ? "0 10px 20px rgba(230,9,9,0.10)"
+                              : "0 8px 18px rgba(15,23,42,0.035)",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 1.4,
+                              display: "grid",
+                              placeItems: "center",
+                              color: active
+                                ? theme.palette.primary.main
+                                : "rgba(35,35,35,0.54)",
+                              bgcolor: active
+                                ? alpha(theme.palette.primary.main, 0.11)
+                                : "rgba(15,23,42,0.04)",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Icon icon={item.icon} fontSize={16} />
+                          </Box>
+                          <Box sx={{ minWidth: 0, textAlign: "left" }}>
+                            <FontStyle
+                              sx={{
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                letterSpacing: 0,
+                                lineHeight: 1.1,
+                                color: "inherit",
+                              }}
+                            >
+                              {item.label}
+                            </FontStyle>
+                            <FontStyle
+                              sx={{
+                                mt: 0.25,
+                                fontSize: 10.5,
+                                fontWeight: 600,
+                                letterSpacing: 0,
+                                color: active
+                                  ? theme.palette.primary.main
+                                  : "rgba(35,35,35,0.46)",
+                              }}
+                            >
+                              {item.count} tiket
+                            </FontStyle>
+                          </Box>
+                        </Stack>
+                      }
+                    />
+                  );
+                })}
+              </Tabs>
+            </Box>
 
-              "& .MuiTab-root": {
-                textTransform: "none",
-                fontWeight: 600,
-                fontSize: 13,
-                color: "text.disabled",
-                borderRadius: "8px",
-                mx: 0.5,
-                transition: "0.2s",
-
-                "&:hover": {
-                  backgroundColor: "#f5f5f5",
+            <Box
+              sx={{
+                p: { xs: 1, sm: 1.2, md: 1.8 },
+                pt: { xs: 0.75, md: 1.2 },
+                "& .ant-table": {
+                  borderRadius: "14px !important",
+                  overflow: "hidden",
                 },
-              },
-
-              "& .Mui-selected": {
-                color: "primary.main !important",
-                backgroundColor: "rgba(25,118,210,0.08)",
-              },
-            }}
-          >
-            <Tab label={`Semua (${dataTabs.all.length})`} value="all" />
-
-            <Tab
-              label={`Saya Tangani (${dataTabs.mine.length})`}
-              value="mine"
-            />
-
-            <Tab
-              label={`Admin Lain (${dataTabs.others.length})`}
-              value="others"
-            />
-
-            <Tab
-              label={`Pending (${dataTabs.pending.length})`}
-              value="pending"
-            />
-
-            <Tab label={`Proses (${dataTabs.proses.length})`} value="proses" />
-
-            <Tab
-              label={`Selesai (${dataTabs.selesai.length})`}
-              value="selesai"
-            />
-
-            <Tab
-              label={`Ditolak (${dataTabs.ditolak.length})`}
-              value="ditolak"
-            />
-          </Tabs>
-
-          {/* =========================
-          SEARCH
-          ========================= */}
-          <Space.Compact
-            style={{
-              width: "100%",
-              marginBottom: 30,
-              marginTop: 20,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Input
-              placeholder="Cari data disini..."
-              allowClear
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ width: "100%", padding: "8px 12px" }}
-            />
-            <AntdButton
-              type="primary"
-              icon={<Icon icon="line-md:search-twotone" fontSize={20} />}
-              style={{ padding: "19px" }}
-            />
-          </Space.Compact>
-
-          {/* =========================
-          TABLE
-          ========================= */}
-          <Table
-            columns={columns}
-            dataSource={filtered}
-            onChange={onChangePageSize}
-            rowKey="id"
-            showSorterTooltip={{ target: "sorter-icon" }}
-            scroll={{ x: "max-content", y: 500 }}
-            style={{
-              background: "#fff",
-              borderRadius: 10,
-              overflow: "hidden",
-            }}
-            rowClassName={() => "custom-row"}
-            pagination={{
-              pageSize: pageSize,
-              showSizeChanger: true,
-              pageSizeOptions: [5, 10, 20, 50],
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} dari ${total} data`,
-            }}
-          />
-        </Paper>
+                "& .ant-table-thead > tr > th": {
+                  fontFamily: "Poppins, sans-serif",
+                  fontWeight: "800 !important",
+                  fontSize: "12px !important",
+                  paddingTop: { xs: "12px !important", md: "14px !important" },
+                  paddingBottom: {
+                    xs: "12px !important",
+                    md: "14px !important",
+                  },
+                },
+                "& .ant-table-tbody > tr > td": {
+                  fontFamily: "Poppins, sans-serif",
+                  fontSize: "12.5px",
+                  paddingTop: { xs: "12px !important", md: "14px !important" },
+                  paddingBottom: {
+                    xs: "12px !important",
+                    md: "14px !important",
+                  },
+                },
+                "& .ant-table-tbody > tr:first-of-type > td": {
+                  paddingTop: "10px !important",
+                },
+                "& .ant-table-container": {
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  borderRadius: "14px !important",
+                },
+                "& .ant-pagination": {
+                  marginBottom: "0 !important",
+                },
+              }}
+            >
+              <Table
+                columns={columns}
+                dataSource={filtered}
+                loading={loading}
+                onChange={onChangePageSize}
+                rowKey="id"
+                showSorterTooltip={{ target: "sorter-icon" }}
+                scroll={{ x: "max-content", y: 500 }}
+                rowClassName={() => "custom-row"}
+                locale={{
+                  emptyText: (
+                    <Box sx={{ py: 4, textAlign: "center" }}>
+                      <Icon
+                        icon="mdi:ticket-outline"
+                        fontSize={42}
+                        color="rgba(230,9,9,0.45)"
+                      />
+                      <FontStyle
+                        sx={{
+                          mt: 1,
+                          fontSize: 15,
+                          fontWeight: 900,
+                          color: "text.primary",
+                        }}
+                      >
+                        Belum ada tiket ditemukan
+                      </FontStyle>
+                      <FontStyle
+                        sx={{
+                          mt: 0.4,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "rgba(35,35,35,0.58)",
+                        }}
+                      >
+                        Coba ubah kata kunci pencarian atau filter yang dipilih.
+                      </FontStyle>
+                    </Box>
+                  ),
+                }}
+                pagination={{
+                  pageSize: pageSize,
+                  showSizeChanger: true,
+                  pageSizeOptions: [5, 10, 20, 50],
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} dari ${total} data`,
+                }}
+              />
+            </Box>
+          </Paper>
+        </Stack>
       </ConfigProvider>
     </Box>
   );
