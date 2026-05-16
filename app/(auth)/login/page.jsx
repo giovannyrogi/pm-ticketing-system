@@ -318,7 +318,6 @@ const LoginPage = () => {
                     fullWidth
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    autoFocus
                     required
                     disabled={disabled}
                     color="primary"
