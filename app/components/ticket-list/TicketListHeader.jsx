@@ -5,7 +5,13 @@ import { Icon } from "@iconify/react";
 import { Box, Chip, Paper, Stack } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 
-const TicketListHeader = () => {
+const TicketListHeader = ({
+  badge = "Pusat Tiket",
+  title = "Daftar Tiket",
+  description = "Pantau antrean, status penanganan, dan riwayat laporan dalam satu tampilan yang mudah dipindai.",
+  icon = "mdi:clipboard-text-search-outline",
+  iconColor = "#2563EB",
+}) => {
   const theme = useTheme();
 
   return (
@@ -29,7 +35,7 @@ const TicketListHeader = () => {
       >
         <Box>
           <Chip
-            label="Pusat Tiket"
+            label={badge}
             size="small"
             sx={{
               height: 24,
@@ -51,7 +57,7 @@ const TicketListHeader = () => {
               lineHeight: 1.12,
             }}
           >
-            Daftar Tiket
+            {title}
           </FontStyle>
           <FontStyle
             sx={{
@@ -64,8 +70,7 @@ const TicketListHeader = () => {
               maxWidth: 760,
             }}
           >
-            Pantau antrean, status penanganan, dan riwayat laporan dalam satu
-            tampilan yang mudah dipindai.
+            {description}
           </FontStyle>
         </Box>
 
@@ -74,15 +79,15 @@ const TicketListHeader = () => {
             width: { xs: 52, md: 72 },
             height: { xs: 52, md: 72 },
             borderRadius: "50%",
-            bgcolor: alpha("#2563EB", 0.09),
-            color: "#2563EB",
-            border: "1px solid rgba(37,99,235,0.14)",
+            bgcolor: alpha(iconColor, 0.09),
+            color: iconColor,
+            border: `1px solid ${alpha(iconColor, 0.14)}`,
             display: { xs: "none", sm: "grid" },
             placeItems: "center",
             flexShrink: 0,
           }}
         >
-          <Icon icon="mdi:clipboard-text-search-outline" fontSize={34} />
+          <Icon icon={icon} fontSize={34} />
         </Box>
       </Stack>
     </Paper>
