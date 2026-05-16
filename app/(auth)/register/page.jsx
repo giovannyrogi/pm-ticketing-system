@@ -588,6 +588,7 @@ const RegisterPage = () => {
             badge="Buat Akun PMCare"
             title="Daftar Akun Baru"
             description="Lengkapi data akun untuk membuat laporan, memantau tiket, dan menerima verifikasi melalui WhatsApp."
+            showLogoOnMobile={false}
           />
           <Box sx={{ p: { xs: 2.4, md: 3.4 } }}>
             <form
