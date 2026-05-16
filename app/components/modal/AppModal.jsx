@@ -147,7 +147,7 @@ const AppModal = ({
                       minHeight: 44,
                       borderRadius: 2,
                       textTransform: "none",
-                      fontWeight: 800,
+                      fontWeight: 600,
                     }}
                     {...cancelButtonProps}
                   >
@@ -163,7 +163,7 @@ const AppModal = ({
                     minHeight: 44,
                     borderRadius: 2,
                     textTransform: "none",
-                    fontWeight: 900,
+                    fontWeight: 600,
                     boxShadow: "0 12px 24px rgba(230,9,9,0.22)",
                   }}
                   {...submitButtonProps}

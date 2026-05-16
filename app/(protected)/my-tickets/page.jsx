@@ -632,7 +632,7 @@ const MyTickets = () => {
                           <FontStyle
                             sx={{
                               fontSize: 11.5,
-                              fontWeight: 900,
+                              fontWeight: 600,
                               letterSpacing: 0,
                               lineHeight: 1.1,
                               color: "inherit",
@@ -644,7 +644,7 @@ const MyTickets = () => {
                             sx={{
                               mt: 0.25,
                               fontSize: 10.5,
-                              fontWeight: 800,
+                              fontWeight: 600,
                               letterSpacing: 0,
                               color: active
                                 ? theme.palette.primary.main

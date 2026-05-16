@@ -76,7 +76,7 @@ export async function POST(req) {
       );
     }
 
-    if (files.length > 3) {
+    if (existingImages.length + files.length > 3) {
       return Response.json(
         { success: false, message: "Maksimal 3 gambar" },
         { status: 400 },
@@ -158,21 +158,21 @@ export async function POST(req) {
       fs.mkdirSync(ticketFolder, { recursive: true });
     }
 
-    if (files.length > 0) {
-      /**
-       * =============================
-       * DELETE IMAGES (BEFORE INSERT NEW ONES)
-       * =============================
-       */
-      if (imagesToDelete.length > 0) {
-        await client.query(
-          `DELETE FROM attachments 
-          WHERE ticket_id = $1 
-          AND image_url = ANY($2)`,
-          [ticketId, imagesToDelete],
-        );
-      }
+    /**
+     * =============================
+     * DELETE REMOVED IMAGES
+     * =============================
+     */
+    if (imagesToDelete.length > 0) {
+      await client.query(
+        `DELETE FROM attachments 
+        WHERE ticket_id = $1 
+        AND image_url = ANY($2)`,
+        [ticketId, imagesToDelete],
+      );
+    }
 
+    if (files.length > 0) {
       let index = 0;
 
       for (const file of files) {
