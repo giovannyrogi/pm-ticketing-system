@@ -164,7 +164,11 @@ const TicketRatingSection = ({
         <Box
           sx={{
             width: isMobile ? 56 : 44,
-            height: isMobile ? 52 : 44,
+            minWidth: isMobile ? 56 : 44,
+            height: isMobile ? 56 : 44,
+            minHeight: isMobile ? 56 : 44,
+            flex: "0 0 auto",
+            aspectRatio: "1 / 1",
 
             borderRadius: "50%",
 
