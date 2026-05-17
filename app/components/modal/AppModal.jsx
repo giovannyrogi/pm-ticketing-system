@@ -76,8 +76,8 @@ const AppModal = ({
             <Stack direction="row" spacing={1.4} alignItems="center">
               <Box
                 sx={{
-                  width: 50,
-                  height: 50,
+                  width: 60,
+                  height: 60,
                   borderRadius: 2,
                   display: "grid",
                   placeItems: "center",
@@ -86,7 +86,7 @@ const AppModal = ({
                   flexShrink: 0,
                 }}
               >
-                <Icon icon={icon} fontSize={28} />
+                <Icon icon={icon} fontSize={40} />
               </Box>
               <Box minWidth={0}>
                 <FontStyle
