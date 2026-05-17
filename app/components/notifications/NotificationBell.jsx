@@ -322,6 +322,7 @@ const NotificationBell = ({ user, onShowLoading, onHideLoading }) => {
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
+        disableScrollLock
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         PaperProps={{

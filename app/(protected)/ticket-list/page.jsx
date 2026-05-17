@@ -463,7 +463,7 @@ const TicketList = () => {
             title="Daftar Tiket"
             description="Pantau antrean, status penanganan, dan riwayat laporan dalam satu tampilan yang mudah dipindai."
             icon="mdi:clipboard-text-search-outline"
-            iconColor="#2563EB"
+            iconColor="#EF0B0B"
           />
 
           <Paper

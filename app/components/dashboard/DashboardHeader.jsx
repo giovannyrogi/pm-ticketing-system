@@ -16,7 +16,7 @@ const DashboardHeader = ({ countdownMinutes, countdownSeconds }) => {
         border: "1px solid rgba(0,0,0,0.10)",
         boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
         background:
-          "linear-gradient(135deg, rgba(230,9,9,0.08) 0%, rgba(255,255,255,1) 50%, rgba(37,99,235,0.08) 100%)",
+          "linear-gradient(135deg, rgba(230,9,9,0.08) 0%, rgba(255,255,255,1) 50%, rgba(230,9,9,0.075) 100%)",
         overflow: "hidden",
         position: "relative",
       }}

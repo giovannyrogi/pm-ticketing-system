@@ -17,7 +17,7 @@ const PublicHero = () => {
         borderRadius: 2,
         border: "1px solid rgba(0,0,0,0.10)",
         background:
-          "linear-gradient(135deg, rgba(22,163,74,0.09) 0%, rgba(255,255,255,1) 42%, rgba(230,9,9,0.08) 100%)",
+          "linear-gradient(135deg, rgba(230,9,9,0.08) 0%, rgba(255,255,255,1) 42%, rgba(230,9,9,0.08) 100%)",
       }}
     >
       <Stack

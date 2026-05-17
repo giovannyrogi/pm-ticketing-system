@@ -412,7 +412,7 @@ const MyTickets = () => {
             title="Tiket Saya"
             description="Pantau laporan yang Anda buat, cek status penanganan, dan lanjutkan percakapan dengan admin PMCare."
             icon="mdi:message-text-clock-outline"
-            iconColor="#16A34A"
+            iconColor="#EF0B0B"
           />
 
           <Paper
