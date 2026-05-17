@@ -11,6 +11,7 @@ import {
   Stack,
   TextField,
   Divider,
+  useMediaQuery,
 } from "@mui/material";
 
 import { Icon } from "@iconify/react";
@@ -25,6 +26,8 @@ const TicketRatingSection = ({
   DESC_MAX,
   readOnly = false,
 }) => {
+  const isMobile = useMediaQuery("(max-width: 600px)");
+
   /**
    * ===============================
    * LOCAL STATE
@@ -160,8 +163,8 @@ const TicketRatingSection = ({
       <Stack direction="row" spacing={1.5} alignItems="center">
         <Box
           sx={{
-            width: 44,
-            height: 44,
+            width: isMobile ? 56 : 44,
+            height: isMobile ? 52 : 44,
 
             borderRadius: "50%",
 

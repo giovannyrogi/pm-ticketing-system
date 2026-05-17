@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { Box, Chip, Divider, Grid, Paper, useTheme } from "@mui/material";
+import { Box, Chip, Divider, Grid, Paper, useMediaQuery, useTheme } from "@mui/material";
 
 import { Icon } from "@iconify/react";
 
@@ -11,6 +11,7 @@ import StatusTag from "../status-tag/StatusTag";
 import { color } from "framer-motion";
 
 const TicketStatusInformation = ({ data, showTicketStatus }) => {
+  const isMobile = useMediaQuery("(max-width:600px)");
   const theme = useTheme();
 
   /**
@@ -76,8 +77,8 @@ const TicketStatusInformation = ({ data, showTicketStatus }) => {
         <Box display="flex" alignItems="center" gap={1.2}>
           <Box
             sx={{
-              width: 42,
-              height: 42,
+              width: isMobile ? 56 : 42,
+              height: isMobile ? 52 : 42,
 
               borderRadius: "50%",
 
