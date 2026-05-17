@@ -28,6 +28,8 @@ const theme = createTheme({
         root: {
           fontFamily: "Poppins",
           backgroundColor: "#F4F6F8",
+          minHeight: 56,
+          alignItems: "flex-end",
           transition: "all 0.2s ease",
           "&:hover": {
             backgroundColor: "#EEF1F3",
@@ -54,7 +56,8 @@ const theme = createTheme({
 
         input: {
           color: "#232323",
-          paddingTop: "24px",
+          paddingTop: "22px",
+          paddingBottom: "8px",
           fontSize: "0.95rem",
         },
       },
@@ -67,11 +70,34 @@ const theme = createTheme({
           color: "#232323",
           fontWeight: 500,
           fontFamily: "Poppins",
+          transform: "translate(12px, 8px) scale(1)",
+
+          "&.MuiInputLabel-shrink": {
+            transform: "translate(12px, 5px) scale(0.75)",
+          },
 
           "&.Mui-focused": {
             color: "#E60909",
             fontWeight: 600,
           },
+        },
+      },
+    },
+
+    // ===== INPUT ADORNMENT =====
+    MuiInputAdornment: {
+      styleOverrides: {
+        positionStart: {
+          alignSelf: "flex-end",
+          marginBottom: 8,
+          marginRight: 10,
+          minWidth: 20,
+          justifyContent: "center",
+        },
+
+        positionEnd: {
+          alignSelf: "flex-end",
+          marginBottom: 4,
         },
       },
     },

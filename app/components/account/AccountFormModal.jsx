@@ -166,6 +166,17 @@ const AccountFormModal = ({
                     },
                     "& .MuiInputBase-input": {
                       py: 0.8,
+                      pl: 0,
+                    },
+                    "& .MuiInputAdornment-positionStart": {
+                      alignSelf: "flex-end",
+                      mb: 0.55,
+                      ml: 1.5,
+                      mr: 1,
+                    },
+                    "& .MuiInputAdornment-positionEnd": {
+                      alignSelf: "flex-end",
+                      mb: 0.2,
                     },
                     "& .MuiInput-underline:before": {
                       borderBottomColor: "rgba(0,0,0,0.24)",
@@ -186,7 +197,7 @@ const AccountFormModal = ({
                       },
                     },
                     "& .MuiInputLabel-shrink": {
-                      transform: "translate(0, -1.5px) scale(0.75)",
+                      transform: "translate(0, -2px) scale(0.75)",
                     },
                   }}
                 />

@@ -12,6 +12,10 @@ import {
   getAccountPhoneOTPSession,
   saveAccountPhoneOTPSession,
 } from "@/app/utils/accountPhoneOtpSession";
+import {
+  validateAuthPassword,
+  validatePasswordConfirmation,
+} from "@/app/utils/authValidation";
 import { updateUserCookie } from "@/app/utils/updateUserCookie";
 import {
   sanitizePhoneNumber,
@@ -135,13 +139,23 @@ const AccountPage = () => {
       return;
     }
 
-    if (passwordForm.newPassword.length < 8) {
-      showMessage("Password baru minimal 8 karakter", "error");
+    const passwordError = validateAuthPassword(
+      passwordForm.newPassword,
+      "Password baru",
+    );
+
+    if (passwordError) {
+      showMessage(passwordError, "error");
       return;
     }
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      showMessage("Konfirmasi password baru tidak sesuai", "error");
+    const confirmationError = validatePasswordConfirmation(
+      passwordForm.newPassword,
+      passwordForm.confirmPassword,
+    );
+
+    if (confirmationError) {
+      showMessage(confirmationError, "error");
       return;
     }
 

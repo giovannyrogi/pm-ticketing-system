@@ -2,8 +2,10 @@ import pool from "@/lib/dbConfig";
 import bcrypt from "bcryptjs";
 import { getAuthUser, jsonError } from "../_utils";
 import { NextResponse } from "next/server";
-
-const MIN_PASSWORD_LENGTH = 8;
+import {
+  validateAuthPassword,
+  validatePasswordConfirmation,
+} from "@/app/utils/authValidation";
 
 export async function PATCH(req) {
   try {
@@ -19,13 +21,11 @@ export async function PATCH(req) {
       return jsonError("Semua field password harus diisi");
     }
 
-    if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      return jsonError("Password baru minimal 8 karakter");
-    }
+    const passwordError =
+      validateAuthPassword(newPassword, "Password baru") ||
+      validatePasswordConfirmation(newPassword, confirmPassword);
 
-    if (newPassword !== confirmPassword) {
-      return jsonError("Konfirmasi password baru tidak sesuai");
-    }
+    if (passwordError) return jsonError(passwordError);
 
     if (currentPassword === newPassword) {
       return jsonError("Password baru harus berbeda dari password saat ini");
