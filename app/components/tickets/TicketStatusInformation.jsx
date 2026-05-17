@@ -77,8 +77,8 @@ const TicketStatusInformation = ({ data, showTicketStatus }) => {
         <Box display="flex" alignItems="center" gap={1.2}>
           <Box
             sx={{
-              width: isMobile ? 56 : 42,
-              height: isMobile ? 52 : 42,
+              width: isMobile ? 56 : 44,
+              height: isMobile ? 52 : 44,
 
               borderRadius: "50%",
 
