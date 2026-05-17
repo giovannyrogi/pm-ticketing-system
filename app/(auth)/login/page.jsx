@@ -69,8 +69,8 @@ const LoginPage = () => {
 
         setTimeout(() => {
           router.push(response?.data?.redirectTo || "/");
-          setLoading(false);
-          setRedirecting(false);
+          // setLoading(false);
+          // setRedirecting(false);
         }, 1000);
       } else {
         setSnackbar({
