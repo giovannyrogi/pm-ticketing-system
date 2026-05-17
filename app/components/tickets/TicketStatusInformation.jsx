@@ -77,8 +77,12 @@ const TicketStatusInformation = ({ data, showTicketStatus }) => {
         <Box display="flex" alignItems="center" gap={1.2}>
           <Box
             sx={{
-              width: isMobile ? 56 : 44,
-              height: isMobile ? 54 : 44,
+              width: isMobile ? 52 : 42,
+              minWidth: isMobile ? 52 : 42,
+              height: isMobile ? 52 : 42,
+              minHeight: isMobile ? 52 : 42,
+              flex: "0 0 auto",
+              aspectRatio: "1 / 1",
 
               borderRadius: "50%",
 
@@ -101,7 +105,7 @@ const TicketStatusInformation = ({ data, showTicketStatus }) => {
                   ? "material-symbols:close"
                   : "material-symbols:task-alt-rounded"
               }
-              fontSize={24}
+              fontSize={28}
             />
           </Box>
 

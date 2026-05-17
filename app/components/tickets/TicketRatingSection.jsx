@@ -179,7 +179,7 @@ const TicketRatingSection = ({
             boxShadow: "0 6px 18px rgba(255,184,0,0.25)",
           }}
         >
-          <Icon icon="material-symbols:star-rounded" fontSize={24} />
+          <Icon icon="material-symbols:star-rounded" fontSize={28} />
         </Box>
 
         <Box>
