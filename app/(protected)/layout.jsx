@@ -1,26 +1,24 @@
-"use client";
-import { useState } from "react";
-import { useUser } from "../utils/useUser";
-import { getMenusByRole } from "../components/menu/getMenuByRole";
-import MENU_CONFIG from "../components/menu/MenuConfig";
-import MainLayout from "../components/layout/MainLayout";
+import ProtectedLayoutClient from "./ProtectedLayoutClient";
 
+/**
+ * Semua halaman protected adalah area kerja internal, jadi diberi noindex agar
+ * dashboard, daftar tiket admin, akun, dan data master tidak masuk hasil mesin
+ * pencari.
+ */
+export const metadata = {
+  title: "PMCare - Area Internal",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+  },
+};
+
+/**
+ * Wrapper server tipis untuk metadata. Komponen layout interaktif tetap
+ * dipisah di ProtectedLayoutClient agar hook client tidak bercampur dengan
+ * metadata server.
+ */
 export default function ProtectedLayout({ children }) {
-  const { user } = useUser();
-  const menus = getMenusByRole(MENU_CONFIG, user?.role);
-
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  return (
-    <MainLayout
-      user={user}
-      menus={menus}
-      showSidebar={true}
-      drawerOpen={drawerOpen}
-      onBurgerClick={() => setDrawerOpen(true)}
-      onCloseDrawer={() => setDrawerOpen(false)}
-    >
-      {children}
-    </MainLayout>
-  );
+  return <ProtectedLayoutClient>{children}</ProtectedLayoutClient>;
 }
