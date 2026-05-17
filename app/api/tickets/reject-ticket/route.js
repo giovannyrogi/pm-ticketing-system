@@ -1,5 +1,10 @@
 import pool from "@/lib/dbConfig";
 import { cookies } from "next/headers";
+import {
+  createNotification,
+  createNotificationsForUsers,
+  getActiveStaffUserIds,
+} from "@/app/api/notifications/_utils";
 
 export async function POST(req) {
   const client = await pool.connect();
@@ -109,6 +114,8 @@ export async function POST(req) {
         SELECT
           id,
           ticket_code,
+          ticket_title,
+          created_by,
           status,
           assigned_to,
           rejected_by
@@ -239,6 +246,39 @@ export async function POST(req) {
         user.id,
       ],
     );
+
+    // Pelapor perlu mendapat alasan penolakan agar bisa memahami keputusan admin.
+    await createNotification(client, {
+      userId: ticket.created_by,
+      ticketId,
+      type: "ticket_rejected",
+      title: "Laporan ditolak",
+      message: `Laporan ${ticket.ticket_code} ditolak oleh ${user.full_name || user.username}. Klik disini untuk melihat detail penolakan.`,
+      metadata: {
+        ticket_code: ticket.ticket_code,
+        ticket_title: ticket.ticket_title,
+        rejected_by: user.id,
+        rejected_reason: rejectedReason,
+        url: `/ticket-details/${ticketId}`,
+      },
+    });
+
+    const staffUserIds = await getActiveStaffUserIds(client, [user.id]);
+
+    // Staff lain perlu mendapat ringkasan saat laporan ditolak oleh staff/superadmin.
+    await createNotificationsForUsers(client, staffUserIds, {
+      ticketId,
+      type: "ticket_rejected_by_staff",
+      title: "Laporan ditolak",
+      message: `${user.full_name || user.username} menolak ${ticket.ticket_code}. Klik disini untuk melihat detail penolakan.`,
+      metadata: {
+        ticket_code: ticket.ticket_code,
+        ticket_title: ticket.ticket_title,
+        rejected_by: user.id,
+        rejected_reason: rejectedReason,
+        url: `/ticket-details/${ticketId}`,
+      },
+    });
 
     await client.query("COMMIT");
 

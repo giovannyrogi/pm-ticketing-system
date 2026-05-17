@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import moment from "moment";
 import sanitizeFileName from "@/app/utils/sanitizeFileName";
+import { createNotification } from "@/app/api/notifications/_utils";
 
 const getReplySide = (role) =>
   ["admin", "superadmin"].includes(role) ? "staff" : role;
@@ -113,6 +114,7 @@ export async function POST(req) {
         SELECT
           t.id,
           t.ticket_code,
+          t.ticket_title,
           t.status,
           t.created_by,
           t.assigned_to,
@@ -402,6 +404,27 @@ export async function POST(req) {
         await fs.promises.writeFile(file.filepath, file.buffer);
         writtenFiles.push(file.filepath);
       }
+    }
+
+    const recipientId =
+      userReplySide === "user" ? ticket.assigned_to : ticket.created_by;
+
+    // Notifikasi chat hanya dikirim ke lawan bicara tiket agar badge tidak mengganggu pengirim.
+    if (recipientId && Number(recipientId) !== Number(user.id)) {
+      await createNotification(client, {
+        userId: recipientId,
+        ticketId,
+        type: "ticket_message",
+        title: "Pesan baru di tiket",
+        message: `${user.full_name || user.username} mengirim pesan pada ${ticket.ticket_code}.`,
+        metadata: {
+          ticket_code: ticket.ticket_code,
+          ticket_title: ticket.ticket_title,
+          sender_id: user.id,
+          message_id: newMessage.id,
+          url: `/ticket-details/${ticketId}`,
+        },
+      });
     }
 
     /**

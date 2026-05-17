@@ -1,5 +1,10 @@
 import pool from "@/lib/dbConfig";
 import { cookies } from "next/headers";
+import {
+  createNotification,
+  createNotificationsForUsers,
+  getActiveStaffUserIds,
+} from "@/app/api/notifications/_utils";
 
 export async function POST(req) {
   const client = await pool.connect();
@@ -87,6 +92,8 @@ export async function POST(req) {
         SELECT
           id,
           ticket_code,
+          ticket_title,
+          created_by,
           status,
           assigned_to,
           is_public,
@@ -229,6 +236,37 @@ export async function POST(req) {
         user.id,
       ]
     );
+
+    // Pelapor mendapat informasi ketika laporannya dipublikasikan ke halaman publik.
+    await createNotification(client, {
+      userId: ticket.created_by,
+      ticketId,
+      type: "ticket_published",
+      title: "Laporan dipublikasikan",
+      message: `Laporan ${ticket.ticket_code} sudah tersedia di halaman publik.`,
+      metadata: {
+        ticket_code: ticket.ticket_code,
+        ticket_title: ticket.ticket_title,
+        published_by: user.id,
+        url: `/ticket-details/${ticketId}`,
+      },
+    });
+
+    const staffUserIds = await getActiveStaffUserIds(client, [user.id]);
+
+    // Staff lain mendapat informasi saat laporan tersedia untuk publik.
+    await createNotificationsForUsers(client, staffUserIds, {
+      ticketId,
+      type: "ticket_published_by_staff",
+      title: "Laporan dipublikasikan",
+      message: `${user.full_name || user.username} mempublikasikan ${ticket.ticket_code}.`,
+      metadata: {
+        ticket_code: ticket.ticket_code,
+        ticket_title: ticket.ticket_title,
+        published_by: user.id,
+        url: `/ticket-details/${ticketId}`,
+      },
+    });
 
     /**
      * ===============================

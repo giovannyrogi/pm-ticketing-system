@@ -1,5 +1,10 @@
 import pool from "@/lib/dbConfig";
 import { cookies } from "next/headers";
+import {
+  createNotification,
+  createNotificationsForUsers,
+  getActiveSuperadminUserIds,
+} from "@/app/api/notifications/_utils";
 
 export async function POST(req) {
   const client = await pool.connect();
@@ -125,7 +130,10 @@ export async function POST(req) {
       `
         SELECT
           id,
+          ticket_code,
+          ticket_title,
           created_by,
+          assigned_to,
           status,
           rating_value
         FROM tickets
@@ -261,6 +269,42 @@ export async function POST(req) {
         user.id,
       ],
     );
+
+    // Admin yang menangani mendapat feedback ketika user memberi penilaian.
+    if (ticket.assigned_to) {
+      await createNotification(client, {
+        userId: ticket.assigned_to,
+        ticketId,
+        type: "ticket_rated",
+        title: "Rating baru diterima",
+        message: `${user.full_name || user.username} memberi rating ${ratingValue} untuk ${ticket.ticket_code}.`,
+        metadata: {
+          ticket_code: ticket.ticket_code,
+          ticket_title: ticket.ticket_title,
+          rating_value: ratingValue,
+          url: `/ticket-details/${ticketId}`,
+        },
+      });
+    }
+
+    const superadminUserIds = await getActiveSuperadminUserIds(client, [
+      ticket.assigned_to,
+    ]);
+
+    // Superadmin mendapat feedback layanan, kecuali jika superadmin tersebut adalah handler tiket.
+    await createNotificationsForUsers(client, superadminUserIds, {
+      ticketId,
+      type: "ticket_rated_by_user",
+      title: "Rating laporan diterima",
+      message: `${user.full_name || user.username} memberi rating ${ratingValue} untuk ${ticket.ticket_code}.`,
+      metadata: {
+        ticket_code: ticket.ticket_code,
+        ticket_title: ticket.ticket_title,
+        rating_value: ratingValue,
+        rated_by: user.id,
+        url: `/ticket-details/${ticketId}`,
+      },
+    });
 
     /**
      * ===============================

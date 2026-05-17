@@ -5,6 +5,10 @@ import moment from "moment";
 import { cookies } from "next/headers";
 import { generateUniqueTicketCode } from "@/app/utils/generateTicketCode";
 import sanitizeFileName from "@/app/utils/sanitizeFileName";
+import {
+  createNotificationsForUsers,
+  getActiveStaffUserIds,
+} from "@/app/api/notifications/_utils";
 
 const uploadDir = path.join(process.cwd(), "uploads/tickets");
 
@@ -267,6 +271,22 @@ export async function POST(req) {
         user.id,
       ],
     );
+
+    const staffUserIds = await getActiveStaffUserIds(client);
+
+    // Notifikasi dibuat di dalam transaksi agar hanya terkirim jika tiket berhasil disimpan.
+    await createNotificationsForUsers(client, staffUserIds, {
+      ticketId,
+      type: "ticket_created",
+      title: "Laporan baru masuk",
+      message: `${user.full_name || user.username} membuat laporan ${ticketCode}.`,
+      metadata: {
+        ticket_code: ticketCode,
+        ticket_title,
+        created_by: user.id,
+        url: `/ticket-details/${ticketId}`,
+      },
+    });
 
     // =============================
     // SAVE FILE BEFORE COMMIT

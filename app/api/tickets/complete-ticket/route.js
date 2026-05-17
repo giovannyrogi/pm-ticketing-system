@@ -1,5 +1,10 @@
 import pool from "@/lib/dbConfig";
 import { cookies } from "next/headers";
+import {
+  createNotification,
+  createNotificationsForUsers,
+  getActiveStaffUserIds,
+} from "@/app/api/notifications/_utils";
 
 export async function POST(req) {
   const client = await pool.connect();
@@ -87,6 +92,8 @@ export async function POST(req) {
         SELECT
           id,
           ticket_code,
+          ticket_title,
+          created_by,
           status,
           assigned_to,
           is_public
@@ -235,6 +242,37 @@ export async function POST(req) {
       `,
       [ticketId, "complete", "proses", "selesai", user.id],
     );
+
+    // Pelapor diberi notifikasi agar dapat melihat hasil dan memberi rating jika diperlukan.
+    await createNotification(client, {
+      userId: ticket.created_by,
+      ticketId,
+      type: "ticket_completed",
+      title: "Laporan selesai",
+      message: `Laporan ${ticket.ticket_code} telah diselesaikan oleh ${user.full_name || user.username}.`,
+      metadata: {
+        ticket_code: ticket.ticket_code,
+        ticket_title: ticket.ticket_title,
+        completed_by: user.id,
+        url: `/ticket-details/${ticketId}`,
+      },
+    });
+
+    const staffUserIds = await getActiveStaffUserIds(client, [user.id]);
+
+    // Staff lain mendapat ringkasan penyelesaian untuk monitoring layanan.
+    await createNotificationsForUsers(client, staffUserIds, {
+      ticketId,
+      type: "ticket_completed_by_staff",
+      title: "Laporan diselesaikan",
+      message: `${user.full_name || user.username} menyelesaikan ${ticket.ticket_code}.`,
+      metadata: {
+        ticket_code: ticket.ticket_code,
+        ticket_title: ticket.ticket_title,
+        completed_by: user.id,
+        url: `/ticket-details/${ticketId}`,
+      },
+    });
 
     /**
      * ===============================

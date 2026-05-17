@@ -36,6 +36,29 @@ const TicketRatingSection = ({
 
   /**
    * ===============================
+   * RATING LABEL
+   * ===============================
+   * Hook harus selalu dipanggil sebelum conditional return agar urutan hook stabil.
+   */
+  const ratingLabel = useMemo(() => {
+    switch (rating) {
+      case 1:
+        return "Sangat Buruk";
+      case 2:
+        return "Buruk";
+      case 3:
+        return "Cukup";
+      case 4:
+        return "Baik";
+      case 5:
+        return "Sangat Baik";
+      default:
+        return undefined;
+    }
+  }, [rating]);
+
+  /**
+   * ===============================
    * CHECK OWNER
    * ===============================
    */
@@ -93,28 +116,6 @@ const TicketRatingSection = ({
   if (!canGiveRating && !showRatingResult) {
     return null;
   }
-
-  /**
-   * ===============================
-   * RATING LABEL
-   * ===============================
-   */
-  const ratingLabel = useMemo(() => {
-    switch (rating) {
-      case 1:
-        return "Sangat Buruk";
-      case 2:
-        return "Buruk";
-      case 3:
-        return "Cukup";
-      case 4:
-        return "Baik";
-      case 5:
-        return "Sangat Baik";
-      default:
-        return undefined;
-    }
-  }, [rating]);
 
   /**
    * ===============================

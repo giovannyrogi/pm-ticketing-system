@@ -1,9 +1,10 @@
+"use client";
+
 import React, { useState } from "react";
 import {
   Box,
   IconButton,
   Typography,
-  Avatar,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -14,17 +15,15 @@ import {
   Paper,
   useMediaQuery,
   Button,
-  ButtonBase,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
-import BusinessIcon from "@mui/icons-material/Business";
 import { Icon } from "@iconify/react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
+import NotificationBell from "@/app/components/notifications/NotificationBell";
 
 const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
   const theme = useTheme();
@@ -104,25 +103,11 @@ const TopMenu = ({ user, onBurgerClick, onShowLoading, onHideLoading }) => {
 
           {/* Right: Theme Toggle + Avatar */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Tooltip title="Notifikasi">
-              <IconButton
-                // onClick={handleAvatarClick}
-                size="small"
-                sx={{
-                  color: theme.palette.primary.main,
-                  bgcolor: alpha(theme.palette.primary.main, 0.1),
-                  "&:hover": {
-                    bgcolor: alpha(theme.palette.primary.main, 0.2),
-                  },
-                }}
-              >
-                <Icon
-                  icon="line-md:bell-filled-loop"
-                  color={theme.palette.primary.main}
-                  fontSize="25px"
-                />
-              </IconButton>
-            </Tooltip>
+            <NotificationBell
+              user={user}
+              onShowLoading={onShowLoading}
+              onHideLoading={onHideLoading}
+            />
             <Tooltip title="Settings">
               <IconButton
                 onClick={handleAvatarClick}

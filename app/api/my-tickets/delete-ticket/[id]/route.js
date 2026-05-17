@@ -2,6 +2,10 @@ import pool from "@/lib/dbConfig";
 import fs from "fs";
 import { cookies } from "next/headers";
 import path from "path";
+import {
+  createNotificationsForUsers,
+  getActiveStaffUserIds,
+} from "@/app/api/notifications/_utils";
 
 export async function DELETE(req, { params }) {
   const client = await pool.connect();
@@ -47,7 +51,12 @@ export async function DELETE(req, { params }) {
      * ===============================
      */
     const ticketResult = await client.query(
-      `SELECT id, ticket_code, created_by FROM tickets WHERE id = $1 LIMIT 1`,
+      `
+        SELECT id, ticket_code, ticket_title, status, created_by
+        FROM tickets
+        WHERE id = $1
+        LIMIT 1
+      `,
       [id],
     );
 
@@ -64,6 +73,16 @@ export async function DELETE(req, { params }) {
       return Response.json(
         { success: false, message: "Tidak memiliki akses" },
         { status: 403 },
+      );
+    }
+
+    if (ticket.status !== "pending") {
+      return Response.json(
+        {
+          success: false,
+          message: "Hanya tiket dengan status pending yang bisa dihapus",
+        },
+        { status: 400 },
       );
     }
 
@@ -100,6 +119,26 @@ export async function DELETE(req, { params }) {
         user.id,
       ],
     );
+
+    if (user.role === "user") {
+      const staffUserIds = await getActiveStaffUserIds(client);
+
+      // ticket_id sengaja tidak diisi agar notifikasi pembatalan tidak ikut terhapus oleh cascade delete tiket.
+      await createNotificationsForUsers(client, staffUserIds, {
+        type: "ticket_deleted_by_user",
+        title: "Laporan dibatalkan",
+        message: `${user.full_name || user.username} membatalkan laporan ${ticket.ticket_code} sebelum diproses.`,
+        metadata: {
+          ticket_id: ticket.id,
+          ticket_code: ticket.ticket_code,
+          ticket_title: ticket.ticket_title,
+          deleted_by: user.id,
+          deleted_by_role: user.role,
+          is_deleted_ticket: true,
+          url: "/ticket-list",
+        },
+      });
+    }
 
     // DELETE TICKET (cascade jalan otomatis)
     await client.query(`DELETE FROM tickets WHERE id = $1`, [id]);
