@@ -60,7 +60,7 @@ export async function POST(req) {
 
     delete user.password;
 
-    const SESSION_DURATION_MINUTES = 1;
+    const SESSION_DURATION_MINUTES = 60;
     const expiresAt = Date.now() + SESSION_DURATION_MINUTES * 60 * 1000;
 
     const response = NextResponse.json(
