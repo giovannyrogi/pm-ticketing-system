@@ -23,6 +23,7 @@ import { Alert, Box, Chip, Grid, Stack } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Footer from "../components/footer/page";
 import LoadingBackdrop from "../components/loading/Backdrop";
 
 const Home = () => {
@@ -297,113 +298,126 @@ const Home = () => {
   return (
     <Box
       sx={{
-        width: "100%",
-        maxWidth: 1180,
-        mx: "auto",
-        pb: { xs: 4, md: 6 },
+        minHeight: "calc(100vh - 56px - 32px)",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      <PublicHero />
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: 1180,
+          mx: "auto",
+          flex: 1,
+          pb: { xs: 5, md: 5 },
+        }}
+      >
+        <PublicHero />
 
-      <Grid container spacing={1.5} sx={{ mb: 2 }}>
-        {summaryCards.map((item) => (
-          <Grid key={item.title} size={{ xs: 12, sm: 6, md: 4 }}>
-            <PublicSummaryCard {...item} />
-          </Grid>
-        ))}
-      </Grid>
+        <Grid container spacing={1.5} sx={{ mb: 2 }}>
+          {summaryCards.map((item) => (
+            <Grid key={item.title} size={{ xs: 12, sm: 6, md: 4 }}>
+              <PublicSummaryCard {...item} />
+            </Grid>
+          ))}
+        </Grid>
 
-      <Stack spacing={2}>
-        <PublicSectionPanel
-          title="Temukan Laporan"
-          subtitle="Saring laporan berdasarkan kata kunci, kategori, lokasi, dan urutan publikasi."
-          icon={<FilterAltOutlinedIcon />}
-          iconColor={theme.palette.primary.main}
-          iconTone={alpha(theme.palette.primary.main, 0.1)}
-          action={
-            <Chip
-              label={`${formatNumber(tickets.length)} hasil ditampilkan`}
-              sx={{
-                fontFamily: "Poppins, sans-serif",
-                borderRadius: 2,
-                bgcolor: alpha(theme.palette.primary.main, 0.08),
-                color: theme.palette.primary.main,
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-            />
-          }
-        >
-          <Box sx={{ p: { xs: 1.5, md: 2 } }}>
-            <PublicTicketFilters
-              search={search}
-              onSearchChange={(value) => {
-                resetVisibleTickets();
-                setSearch(value);
-              }}
-              location={location}
-              locations={locations}
-              onLocationChange={(value) => {
-                resetVisibleTickets();
-                setLocation(value);
-              }}
-              category={category}
-              categories={categories}
-              onCategoryChange={(value) => {
-                resetVisibleTickets();
-                setCategory(value);
-              }}
-              sort={sort}
-              sortOptions={SORT_OPTIONS}
-              onSortChange={(value) => {
-                resetVisibleTickets();
-                setSort(value);
-              }}
-            />
-          </Box>
-        </PublicSectionPanel>
-
-        <PublicSectionPanel
-          title="Laporan Terpublikasi"
-          subtitle={filterDescription}
-          icon={<VerifiedOutlinedIcon />}
-          iconColor="#16A34A"
-          iconTone="rgba(22, 163, 74, 0.12)"
-        >
-          <Box
-            sx={{
-              p: { xs: 1.5, md: 2 },
-              background:
-                "linear-gradient(180deg, rgba(250,250,250,0.72) 0%, rgba(255,255,255,1) 36%)",
-            }}
+        <Stack spacing={2}>
+          <PublicSectionPanel
+            title="Temukan Laporan"
+            subtitle="Saring laporan berdasarkan kata kunci, kategori, lokasi, dan urutan publikasi."
+            icon={<FilterAltOutlinedIcon />}
+            iconColor={theme.palette.primary.main}
+            iconTone={alpha(theme.palette.primary.main, 0.1)}
+            action={
+              <Chip
+                label={`${formatNumber(tickets.length)} hasil ditampilkan`}
+                sx={{
+                  fontFamily: "Poppins, sans-serif",
+                  borderRadius: 2,
+                  bgcolor: alpha(theme.palette.primary.main, 0.08),
+                  color: theme.palette.primary.main,
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              />
+            }
           >
-            <Stack spacing={1.5}>
-              {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+            <Box sx={{ p: { xs: 1.5, md: 2 } }}>
+              <PublicTicketFilters
+                search={search}
+                onSearchChange={(value) => {
+                  resetVisibleTickets();
+                  setSearch(value);
+                }}
+                location={location}
+                locations={locations}
+                onLocationChange={(value) => {
+                  resetVisibleTickets();
+                  setLocation(value);
+                }}
+                category={category}
+                categories={categories}
+                onCategoryChange={(value) => {
+                  resetVisibleTickets();
+                  setCategory(value);
+                }}
+                sort={sort}
+                sortOptions={SORT_OPTIONS}
+                onSortChange={(value) => {
+                  resetVisibleTickets();
+                  setSort(value);
+                }}
+              />
+            </Box>
+          </PublicSectionPanel>
 
-              {loading ? undefined : tickets.length === 0 ? (
-                <PublicTicketsEmptyState color={theme.palette.primary.main} />
-              ) : (
-                displayedTickets.map((ticket) => (
-                  <PublicTicketCard key={ticket.id} ticket={ticket} />
-                ))
-              )}
+          <PublicSectionPanel
+            title="Laporan Terpublikasi"
+            subtitle={filterDescription}
+            icon={<VerifiedOutlinedIcon />}
+            iconColor="#16A34A"
+            iconTone="rgba(22, 163, 74, 0.12)"
+          >
+            <Box
+              sx={{
+                p: { xs: 1.5, md: 2 },
+                background:
+                  "linear-gradient(180deg, rgba(250,250,250,0.72) 0%, rgba(255,255,255,1) 36%)",
+              }}
+            >
+              <Stack spacing={1.5}>
+                {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-              {!loading && (
-                <PublicTicketsLoadMore
-                  hasMore={hasMoreTickets}
-                  loadingMore={loadingMore}
-                  remainingCount={tickets.length - displayedTickets.length}
-                  totalCount={tickets.length}
-                  color={PUBLIC_GREEN}
-                  loadMoreRef={loadMoreRef}
-                  onLoadMore={loadMoreTickets}
-                />
-              )}
-            </Stack>
-          </Box>
-        </PublicSectionPanel>
-      </Stack>
-      <LoadingBackdrop open={loading} message="Memuat data..." />
+                {loading ? undefined : tickets.length === 0 ? (
+                  <PublicTicketsEmptyState color={theme.palette.primary.main} />
+                ) : (
+                  displayedTickets.map((ticket) => (
+                    <PublicTicketCard key={ticket.id} ticket={ticket} />
+                  ))
+                )}
+
+                {!loading && (
+                  <PublicTicketsLoadMore
+                    hasMore={hasMoreTickets}
+                    loadingMore={loadingMore}
+                    remainingCount={tickets.length - displayedTickets.length}
+                    totalCount={tickets.length}
+                    color={PUBLIC_GREEN}
+                    loadMoreRef={loadMoreRef}
+                    onLoadMore={loadMoreTickets}
+                  />
+                )}
+              </Stack>
+            </Box>
+          </PublicSectionPanel>
+        </Stack>
+        <LoadingBackdrop open={loading} message="Memuat data..." />
+      </Box>
+
+      <Box sx={{ mt: "auto" }}>
+        <Footer />
+      </Box>
     </Box>
   );
 };

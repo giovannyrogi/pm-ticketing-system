@@ -10,7 +10,7 @@ const Footer = () => {
         width: "100%",
 
         pt: 1,
-        pb: 2,
+        pb: 1,
 
         display: "flex",
         justifyContent: "center",

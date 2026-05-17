@@ -872,7 +872,7 @@ const RegisterPage = () => {
                       bgcolor: alpha(theme.palette.primary.main, 0.04),
                       border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
                       display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
+                      flexDirection: "row",
                       alignItems: { xs: "flex-start", sm: "center" },
                       justifyContent: "space-between",
                       gap: 1,

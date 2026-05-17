@@ -603,11 +603,13 @@ const TicketList = () => {
                 value={tab}
                 onChange={(e, val) => setTab(val)}
                 variant="scrollable"
-                scrollButtons="auto"
-                allowScrollButtonsMobile
+                scrollButtons={false}
                 sx={{
                   minHeight: 0,
                   "& .MuiTabs-indicator": {
+                    display: "none",
+                  },
+                  "& .MuiTabs-scrollButtons": {
                     display: "none",
                   },
                   "& .MuiTabs-flexContainer": {
