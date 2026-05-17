@@ -78,7 +78,7 @@ const TicketStatusInformation = ({ data, showTicketStatus }) => {
           <Box
             sx={{
               width: isMobile ? 56 : 44,
-              height: isMobile ? 52 : 44,
+              height: isMobile ? 54 : 44,
 
               borderRadius: "50%",
 
