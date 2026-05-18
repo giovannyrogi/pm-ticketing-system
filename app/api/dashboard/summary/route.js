@@ -8,27 +8,60 @@ const TREND_PERIODS = {
   week: {
     label: "Minggu Ini",
     start: "date_trunc('week', CURRENT_DATE)::date",
-    end: "CURRENT_DATE::date",
+    end: "(date_trunc('week', CURRENT_DATE) + INTERVAL '6 days')::date",
     step: "1 day",
-    outputFormat: "DD Mon",
     bucketFormat: "YYYY-MM-DD",
   },
   month: {
     label: "Bulan Ini",
     start: "date_trunc('month', CURRENT_DATE)::date",
-    end: "CURRENT_DATE::date",
+    end: "(date_trunc('month', CURRENT_DATE) + INTERVAL '1 month - 1 day')::date",
     step: "1 day",
-    outputFormat: "DD Mon",
     bucketFormat: "YYYY-MM-DD",
   },
   year: {
     label: "Tahun Ini",
     start: "date_trunc('year', CURRENT_DATE)::date",
-    end: "date_trunc('month', CURRENT_DATE)::date",
+    end: "(date_trunc('year', CURRENT_DATE) + INTERVAL '11 months')::date",
     step: "1 month",
-    outputFormat: "Mon",
     bucketFormat: "YYYY-MM",
   },
+};
+
+const DAY_NAMES = {
+  short: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+  long: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"],
+};
+
+const MONTH_NAMES = {
+  short: [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mei",
+    "Jun",
+    "Jul",
+    "Agu",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Des",
+  ],
+  long: [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ],
 };
 
 // Normalisasi angka dari PostgreSQL karena hasil COUNT sering kembali sebagai string.
@@ -48,11 +81,43 @@ const getPercentChange = (current, previous) => {
   );
 };
 
+const parseTrendDate = (bucket, period) => {
+  const [year, month, day = "01"] = bucket.split("-").map(Number);
+
+  return new Date(year, month - 1, period === "year" ? 1 : day);
+};
+
+const formatTrendLabel = (bucket, period) => {
+  const date = parseTrendDate(bucket, period);
+  const day = String(date.getDate()).padStart(2, "0");
+  const monthShort = MONTH_NAMES.short[date.getMonth()];
+  const monthLong = MONTH_NAMES.long[date.getMonth()];
+  const year = date.getFullYear();
+
+  if (period === "week") {
+    return {
+      label: DAY_NAMES.short[date.getDay()],
+      tooltip_label: `${DAY_NAMES.long[date.getDay()]}, ${day} ${monthLong} ${year}`,
+    };
+  }
+
+  if (period === "month") {
+    return {
+      label: `${day} ${monthShort}`,
+      tooltip_label: `${DAY_NAMES.long[date.getDay()]}, ${day} ${monthLong} ${year}`,
+    };
+  }
+
+  return {
+    label: monthShort,
+    tooltip_label: `${monthLong} ${year}`,
+  };
+};
+
 // Membuat query trend dari konfigurasi periode yang sudah di-whitelist.
 const buildTrendQuery = (trendConfig) => `
   SELECT
     bucket::date as date,
-    TO_CHAR(bucket, '${trendConfig.outputFormat}') as label,
     TO_CHAR(bucket, '${trendConfig.bucketFormat}') as bucket,
     (
       SELECT COUNT(*)
@@ -75,14 +140,19 @@ const buildTrendQuery = (trendConfig) => `
 `;
 
 // Format hasil query trend agar struktur response konsisten untuk semua periode.
-const mapTrendRows = (rows) =>
-  rows.map((item) => ({
-    date: item.date,
-    bucket: item.bucket,
-    label: item.label,
-    created: toNumber(item.created),
-    completed: toNumber(item.completed),
-  }));
+const mapTrendRows = (rows, period) =>
+  rows.map((item) => {
+    const label = formatTrendLabel(item.bucket, period);
+
+    return {
+      date: item.date,
+      bucket: item.bucket,
+      label: label.label,
+      tooltip_label: label.tooltip_label,
+      created: toNumber(item.created),
+      completed: toNumber(item.completed),
+    };
+  });
 
 // Ambil dan validasi session user dari cookie yang dipakai aplikasi.
 const getUserFromCookie = async () => {
@@ -393,17 +463,17 @@ export async function GET() {
           week: {
             period: "week",
             label: TREND_PERIODS.week.label,
-            items: mapTrendRows(weekTrendResult.rows),
+            items: mapTrendRows(weekTrendResult.rows, "week"),
           },
           month: {
             period: "month",
             label: TREND_PERIODS.month.label,
-            items: mapTrendRows(monthTrendResult.rows),
+            items: mapTrendRows(monthTrendResult.rows, "month"),
           },
           year: {
             period: "year",
             label: TREND_PERIODS.year.label,
-            items: mapTrendRows(yearTrendResult.rows),
+            items: mapTrendRows(yearTrendResult.rows, "year"),
           },
         },
         categories: categoryResult.rows.map((item) => ({
